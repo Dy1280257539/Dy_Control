@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A32E8474-286E-45FA-B3B7-9D3FE47F9F7D}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.19041.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;widgets;charts;charts</QtModules>
+    <QtBuildConfig>debug</QtBuildConfig>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;widgets;charts;</QtModules>
+    <QtBuildConfig>release</QtBuildConfig>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="qtDebug.props" />
+    <Import Project="ur_rtde_debug.props" />
+    <Import Project="opencv_debug.props" />
+    <Import Project="environment\dlib_debug.props" />
+    <Import Project="environment\PCL_Debug.props" />
+    <Import Project="environment\kinect_debug.props" />
+    <Import Project="intel.realsense.props" />
+    <Import Project="matlab.props" />
+    <Import Project="personLib.props" />
+    <Import Project="casadi_ipopt.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="qtRelease.props" />
+    <Import Project="ur_rtde_release.props" />
+    <Import Project="opencv_release.props" />
+    <Import Project="environment\dlib_release.props" />
+    <Import Project="environment\PCL_Release.props" />
+    <Import Project="environment\kinect_release.props" />
+    <Import Project="intel.realsense.props" />
+    <Import Project="matlab.props" />
+    <Import Project="casadi_ipopt.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <IncludePath>F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\include\opencv2;F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\include;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\Build\Debug;F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\x64\vc15\lib;$(LibraryPath)</LibraryPath>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\include;D:\local\boost_1_71_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/bigobj /D_HAS_STD_BYTE=0 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>boost_program_options-vc142-mt-x64-1_71.lib;boost_system-vc142-mt-x64-1_71.lib;boost_thread-vc142-mt-x64-1_71.lib;rtde.lib;libboost_date_time-vc142-mt-gd-x64-1_71.lib;opencv_world460d.lib;Qt5Chartsd.lib;Qt5Concurrentd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalOptions>/bigobj /D_HAS_STD_BYTE=0 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>Default</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
+    <ClCompile>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="depthpixelcolorizer.cpp" />
+    <ClCompile Include="E:\dlib\dlibrelease\dlib-19.24\dlib\all\source.cpp" />
+    <ClCompile Include="endoscopeThread.cpp" />
+    <ClCompile Include="forceSenseController.cpp" />
+    <ClCompile Include="functionSet.cpp" />
+    <ClCompile Include="KeyEventLabel.cpp" />
+    <ClCompile Include="KinectController.cpp" />
+    <ClCompile Include="KinectDK.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="KinectDKfunctionSet.cpp" />
+    <ClCompile Include="kinectThread.cpp" />
+    <ClCompile Include="MinBoundingBox.cpp" />
+    <ClCompile Include="myqopenglwidget.cpp" />
+    <ClCompile Include="myScience.cpp" />
+    <ClCompile Include="pcfunctionSet.cpp" />
+    <ClCompile Include="PID_Control.cpp" />
+    <ClCompile Include="PSO.cpp" />
+    <ClCompile Include="RealSenseCameraManager.cpp" />
+    <ClCompile Include="RealSenseController.cpp" />
+    <ClCompile Include="realSenseThread.cpp" />
+    <ClCompile Include="RealSensor.cpp" />
+    <ClCompile Include="RobotThread.cpp" />
+    <ClCompile Include="RSfunctionSet.cpp" />
+    <QtRcc Include="Dy_Control.qrc" />
+    <QtUic Include="Dy_Control.ui" />
+    <QtMoc Include="Dy_Control.h" />
+    <ClCompile Include="Bpnetwork.cpp" />
+    <ClCompile Include="Dy_Control.cpp" />
+    <ClCompile Include="Genetic_algorithms.cpp" />
+    <ClCompile Include="Impedance_control.cpp" />
+    <ClCompile Include="main.cpp" />
+    <QtUic Include="forceSenseController.ui" />
+    <QtUic Include="KinectController.ui" />
+    <QtUic Include="RealSenseController.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Bpnetwork.h" />
+    <QtMoc Include="forceSenseController.h" />
+    <ClInclude Include="KinectDKfunctionSet.h" />
+    <ClInclude Include="myScience.h" />
+    <ClInclude Include="pcfunctionSet.h" />
+    <ClInclude Include="PSO.h" />
+    <ClInclude Include="RSfunctionSet.h" />
+    <ClInclude Include="RealSenseCameraManager.h" />
+    <QtMoc Include="RealSenseController.h" />
+    <QtMoc Include="realSenseThread.h" />
+    <ClInclude Include="RealSensor.h" />
+    <QtMoc Include="endoscopeThread.h" />
+    <ClInclude Include="functionSet.h" />
+    <QtMoc Include="RobotThread.h" />
+    <QtMoc Include="myqopenglwidget.h" />
+    <QtMoc Include="KeyEventLabel.h" />
+    <QtMoc Include="kinectThread.h" />
+    <QtMoc Include="KinectController.h" />
+    <ClInclude Include="MinBoundingBox.h" />
+    <ClInclude Include="depthpixelcolorizer.h" />
+    <ClInclude Include="Genetic_algorithms.h" />
+    <ClInclude Include="Impedance_control.h" />
+    <ClInclude Include="KinectDK.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PID_Control.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

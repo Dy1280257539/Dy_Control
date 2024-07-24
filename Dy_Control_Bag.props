@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\include\opencv2;F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\include;F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\include;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\DESKAPPPLACE\DOCUMENT\rtde\opencv4\opencv\build\x64\vc15\lib;F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\Build\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>boost_program_options-vc142-mt-x64-1_71.lib;boost_system-vc142-mt-x64-1_71.lib;boost_thread-vc142-mt-x64-1_71.lib;rtde.lib;libboost_date_time-vc142-mt-gd-x64-1_71.lib;opencv_world460d.lib;Qt5Chartsd.lib;Qt5Concurrentd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\DESKAPPPLACE\DOCUMENT\rtde\eigen-3.4.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

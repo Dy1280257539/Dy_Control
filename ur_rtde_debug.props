@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\include;D:\local\boost_1_71_0;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\local\boost_1_71_0\stage\lib;F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\Build\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalLibraryDirectories>F:\DESKAPPPLACE\DOCUMENT\rtde\ur_rtde\include;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>boost_program_options-vc142-mt-x64-1_71.lib;boost_system-vc142-mt-x64-1_71.lib;boost_thread-vc142-mt-x64-1_71.lib;rtde.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

@@ -1,0 +1,254 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>qml;cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>qrc;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Translation Files">
+      <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
+      <Extensions>ts</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Impedance_control">
+      <UniqueIdentifier>{e1a4fda5-014c-4bcd-a661-87fcd2c23e2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\PID_Control">
+      <UniqueIdentifier>{30112e6d-10f6-4848-a549-43e78b48eaea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\KinectDK">
+      <UniqueIdentifier>{0e4be691-6bf3-44f5-ac4f-760b6567a276}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Endoscope">
+      <UniqueIdentifier>{b5963c9d-4311-46bc-bfbf-6ad46454d0f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\other">
+      <UniqueIdentifier>{7da027f9-6f13-4e95-9f32-1a4d24a2f157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Dy_Control">
+      <UniqueIdentifier>{d79de164-8aa9-433a-b525-b2e5218eba75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Impedance_control">
+      <UniqueIdentifier>{7bec5a84-b165-451e-884e-23ee87763331}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\KinectDK">
+      <UniqueIdentifier>{351d75b1-7317-4751-bd8c-e5f0f9602052}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Endoscope">
+      <UniqueIdentifier>{65af8d88-e706-439e-87d1-d9226d1a8186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\other">
+      <UniqueIdentifier>{15f8f04e-d0bd-4a28-93a3-b3385e9f3966}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PID_Control">
+      <UniqueIdentifier>{e0b4c8a8-403a-453a-9db5-bdfdfc27ecb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dy_Control">
+      <UniqueIdentifier>{767fd13f-9624-44f1-9477-9a3988d666f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RealSense">
+      <UniqueIdentifier>{60168bad-f74e-42ca-9c00-5d4dee960e39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RealSense">
+      <UniqueIdentifier>{ab68972b-0c9b-437c-811e-44edaaf45a34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\forceSense">
+      <UniqueIdentifier>{7952658d-39a8-4f0c-8546-58b22cc1d059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\forceSense">
+      <UniqueIdentifier>{1b66e64a-0d50-42b4-8bf4-3d7aef867836}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Dy_Control.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtUic Include="Dy_Control.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="E:\dlib\dlibrelease\dlib-19.24\dlib\all\source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bpnetwork.cpp">
+      <Filter>Source Files\Impedance_control</Filter>
+    </ClCompile>
+    <ClCompile Include="depthpixelcolorizer.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="Dy_Control.cpp">
+      <Filter>Source Files\Dy_Control</Filter>
+    </ClCompile>
+    <ClCompile Include="endoscopeThread.cpp">
+      <Filter>Source Files\Endoscope</Filter>
+    </ClCompile>
+    <ClCompile Include="functionSet.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="Genetic_algorithms.cpp">
+      <Filter>Source Files\Impedance_control</Filter>
+    </ClCompile>
+    <ClCompile Include="Impedance_control.cpp">
+      <Filter>Source Files\Impedance_control</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyEventLabel.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectController.cpp">
+      <Filter>Source Files\KinectDK</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectDK.cpp">
+      <Filter>Source Files\KinectDK</Filter>
+    </ClCompile>
+    <ClCompile Include="kinectThread.cpp">
+      <Filter>Source Files\KinectDK</Filter>
+    </ClCompile>
+    <ClCompile Include="MinBoundingBox.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="myqopenglwidget.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="PID_Control.cpp">
+      <Filter>Source Files\PID_Control</Filter>
+    </ClCompile>
+    <ClCompile Include="RobotThread.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="RealSenseCameraManager.cpp">
+      <Filter>Source Files\RealSense</Filter>
+    </ClCompile>
+    <ClCompile Include="RealSenseController.cpp">
+      <Filter>Source Files\RealSense</Filter>
+    </ClCompile>
+    <ClCompile Include="RealSensor.cpp">
+      <Filter>Source Files\RealSense</Filter>
+    </ClCompile>
+    <ClCompile Include="realSenseThread.cpp">
+      <Filter>Source Files\RealSense</Filter>
+    </ClCompile>
+    <ClCompile Include="RSfunctionSet.cpp">
+      <Filter>Source Files\RealSense</Filter>
+    </ClCompile>
+    <ClCompile Include="KinectDKfunctionSet.cpp">
+      <Filter>Source Files\KinectDK</Filter>
+    </ClCompile>
+    <ClCompile Include="pcfunctionSet.cpp">
+      <Filter>Source Files\other</Filter>
+    </ClCompile>
+    <ClCompile Include="myScience.cpp">
+      <Filter>Source Files\Impedance_control</Filter>
+    </ClCompile>
+    <ClCompile Include="PSO.cpp">
+      <Filter>Source Files\Impedance_control</Filter>
+    </ClCompile>
+    <ClCompile Include="forceSenseController.cpp">
+      <Filter>Source Files\forceSense</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Impedance_control.h">
+      <Filter>Header Files\Impedance_control</Filter>
+    </ClInclude>
+    <ClInclude Include="Bpnetwork.h">
+      <Filter>Header Files\Impedance_control</Filter>
+    </ClInclude>
+    <ClInclude Include="Genetic_algorithms.h">
+      <Filter>Header Files\Impedance_control</Filter>
+    </ClInclude>
+    <ClInclude Include="PID_Control.h">
+      <Filter>Header Files\PID_Control</Filter>
+    </ClInclude>
+    <ClInclude Include="KinectDK.h">
+      <Filter>Header Files\KinectDK</Filter>
+    </ClInclude>
+    <ClInclude Include="functionSet.h">
+      <Filter>Header Files\other</Filter>
+    </ClInclude>
+    <ClInclude Include="depthpixelcolorizer.h">
+      <Filter>Header Files\other</Filter>
+    </ClInclude>
+    <ClInclude Include="MinBoundingBox.h">
+      <Filter>Header Files\other</Filter>
+    </ClInclude>
+    <ClInclude Include="RealSensor.h">
+      <Filter>Header Files\RealSense</Filter>
+    </ClInclude>
+    <ClInclude Include="RealSenseCameraManager.h">
+      <Filter>Header Files\RealSense</Filter>
+    </ClInclude>
+    <ClInclude Include="RSfunctionSet.h">
+      <Filter>Header Files\RealSense</Filter>
+    </ClInclude>
+    <ClInclude Include="KinectDKfunctionSet.h">
+      <Filter>Header Files\KinectDK</Filter>
+    </ClInclude>
+    <ClInclude Include="pcfunctionSet.h">
+      <Filter>Header Files\other</Filter>
+    </ClInclude>
+    <ClInclude Include="myScience.h">
+      <Filter>Header Files\Impedance_control</Filter>
+    </ClInclude>
+    <ClInclude Include="PSO.h">
+      <Filter>Header Files\Impedance_control</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="KinectController.h">
+      <Filter>Header Files\KinectDK</Filter>
+    </QtMoc>
+    <QtMoc Include="kinectThread.h">
+      <Filter>Header Files\KinectDK</Filter>
+    </QtMoc>
+    <QtMoc Include="endoscopeThread.h">
+      <Filter>Header Files\Endoscope</Filter>
+    </QtMoc>
+    <QtMoc Include="Dy_Control.h">
+      <Filter>Header Files\Dy_Control</Filter>
+    </QtMoc>
+    <QtMoc Include="KeyEventLabel.h">
+      <Filter>Header Files\other</Filter>
+    </QtMoc>
+    <QtMoc Include="myqopenglwidget.h">
+      <Filter>Header Files\other</Filter>
+    </QtMoc>
+    <QtMoc Include="RobotThread.h">
+      <Filter>Header Files\other</Filter>
+    </QtMoc>
+    <QtMoc Include="RealSenseController.h">
+      <Filter>Header Files\RealSense</Filter>
+    </QtMoc>
+    <QtMoc Include="realSenseThread.h">
+      <Filter>Header Files\RealSense</Filter>
+    </QtMoc>
+    <QtMoc Include="forceSenseController.h">
+      <Filter>Header Files\forceSense</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="KinectController.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="RealSenseController.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="forceSenseController.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+</Project>
