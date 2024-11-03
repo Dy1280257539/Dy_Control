@@ -66,9 +66,9 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>-214</y>
+          <y>-187</y>
           <width>1202</width>
-          <height>991</height>
+          <height>964</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -1803,42 +1803,42 @@
                      <item>
                       <widget class="QLabel" name="label_60">
                        <property name="text">
-                        <string>  M_θ:</string>
+                        <string>  tau_0:</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="M_xita_lineEdit">
+                      <widget class="QLineEdit" name="tau_0_lineEdit">
                        <property name="text">
-                        <string>1</string>
+                        <string>134000</string>
                        </property>
                       </widget>
                      </item>
                      <item>
                       <widget class="QLabel" name="label_61">
                        <property name="text">
-                        <string>  B_θ:</string>
+                        <string>  gamma:</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="B_xita_lineEdit">
+                      <widget class="QLineEdit" name="gamma_lineEdit">
                        <property name="text">
-                        <string>42</string>
+                        <string>-0.2028</string>
                        </property>
                       </widget>
                      </item>
                      <item>
                       <widget class="QLabel" name="label_62">
                        <property name="text">
-                        <string>  K_θ:</string>
+                        <string>  E_star:</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <widget class="QLineEdit" name="K_xita_lineEdit">
+                      <widget class="QLineEdit" name="E_star_lineEdit">
                        <property name="text">
-                        <string>0</string>
+                        <string>16217.43598</string>
                        </property>
                       </widget>
                      </item>

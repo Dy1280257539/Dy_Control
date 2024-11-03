@@ -811,7 +811,11 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		vector<cv::Vec3d> normalVector_array;
 
+		vector<cv::Vec3d> normalVector_rigid_array; //这是刚体测出来的法向量数组  ！！！！！！！！！[后续要删掉]
+
 		cv::Vec3d expectRotationVector{ 0,0,0 };//合算出来的期望旋转向量 基座标系下的表示
+
+		cv::Vec3d expectRotationVector_rigid{ 0,0,0 };//合算出来的用刚体公式测出来的期望旋转向量 基座标系下的表示 ！！！！！！！！！[后续要删掉]
 
 		// 每个控制周期的轴角旋转速度 （绕某个固定轴旋转的速度）
 		double Δθ = 5 * Ts * PI / 180 * count; //最前面的数字是每秒的度数（粗略）
@@ -819,7 +823,11 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 		cv::Vec3d curRotationVector{ 0,0,0 }; //旋转矢量
 		double curRotationVector_size = 0;//旋转矢量的大小
 
+		cv::Vec3d curRotationVector_rigid{ 0,0,0 }; //旋转矢量 ！！！！！！！！！[后续要删掉]
+		double curRotationVector_rigid_size = 0;//旋转矢量的大小 ！！！！！！！！！[后续要删掉]
+
 		vector<cv::Vec3d> curRotationVector_array;
+		vector<cv::Vec3d> curRotationVector_rigid_array; // ！！！！！！！！！[后续要删掉]
 
 		vector<double> pose = rtde_r->getActualTCPPose();
 
@@ -878,22 +886,37 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 		else {
 			cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
 
-			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
+			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star); //目标向量在移动坐标系下的表示
+
+			cv::Vec3d _targetVec_rigid = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //刚体公式的目标向量在移动坐标系下的表示 ！！！！！！！！！[后续要删掉]
 
 			normalVector_array.push_back(_targetVec);
+
+			normalVector_rigid_array.push_back(_targetVec_rigid); //！！！！！！！！！[后续要删掉]
 
 			if (normalVector_array.size() == norm_count) {
 
 				cv::Vec3d sum{0.0,0.0,0.0};
 
+				cv::Vec3d sum_rigid{ 0.0,0.0,0.0 };//！！！！！！！！！[后续要删掉]
+
 				for (const auto& vec : normalVector_array)
 					sum += vec;
 
+				for (const auto& vec : normalVector_rigid_array) //！！！！！！！！！[后续要删掉]
+					sum_rigid += vec;							//！！！！！！！！！[后续要删掉]
+
 				sum /= static_cast<double>(normalVector_array.size());
+
+				sum_rigid /= static_cast<double>(normalVector_rigid_array.size());//！！！！！！！！！[后续要删掉]
 
 				_targetVec = sum;
 
+				_targetVec_rigid = sum_rigid;//！！！！！！！！！[后续要删掉]
+
 				cv::Vec3d targetVec = rotateVecToTarget(_targetVec, RotMatMotion2Base);//在基座标系下的目标向量表示
+
+				cv::Vec3d targetVec_rigid = rotateVecToTarget(_targetVec_rigid, RotMatMotion2Base);//在基座标系下的目标向量表示  ！！！！！！！！！[后续要删掉]
 
 				//------------------------------------------补偿模块----------------------------------------------
 
@@ -904,6 +927,8 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 				if (cv::norm(targetVec) != 0) {
 
 					curRotationVector = CalculateRotationVector(-sixthAxis, targetVec);
+
+					curRotationVector_rigid = CalculateRotationVector(-sixthAxis, targetVec_rigid);//！！！！！！！！！[后续要删掉]
 
 					//------------------------------------------补偿模块----------------------------------------------
 
@@ -930,7 +955,11 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			curRotationVector_array.push_back(curRotationVector);
 
+			curRotationVector_rigid_array.push_back(curRotationVector_rigid);//！！！！！！！！！[后续要删掉]
+
 			normalVector_array.clear();
+
+			normalVector_rigid_array.clear(); //！！！！！！！！！[后续要删掉]
 		}
 
 
@@ -943,8 +972,16 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			curRotationVector_array.clear();
 
+			expectRotationVector_rigid = averageRotationVector(curRotationVector_rigid_array);//！！！！！！！！！[后续要删掉]
+			ResizeVector(expectRotationVector_rigid, 5 * Δθ < cv::norm(expectRotationVector_rigid) ? Δθ : 0);//！！！！！！！！！[后续要删掉]
+
+			curRotationVector_rigid_array.clear();//！！！！！！！！！[后续要删掉]
+
 			qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
 			qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
+
+			qDebug() << "expectRotationVector_rigid :" << expectRotationVector_rigid[0] << expectRotationVector_rigid[1] << expectRotationVector_rigid[2] << endl; //！！！！！！！！！[后续要删掉]
+			qDebug() << "expectRotationVector_rigid_size" << RAD_TO_DEG(cv::norm(expectRotationVector_rigid)) << endl; //！！！！！！！！！[后续要删掉]
 		}
 
 		newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] ,expectRotationVector[1] ,expectRotationVector[2] });
@@ -1074,47 +1111,66 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 			//qDebug() << "Xc :" << Xc << " Xc_dt:" << Xc_dt << " Xc_ddt:" << Xc_ddt << endl;
 
 			//根据目标向量计算移动角度
-			if (force[2] < Fd / 2) { // 下降状态且力控尚未稳定,则不转动 
+			if (force[2] < Fd / 2) { // 下降状态且力控尚未稳定,则不转动
 
 				curRotationVector = cv::Vec3d{ 0,0,0 };
 				curRotationVector_size = 0;
 			}
 			else {
+
 				cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-				
-				//qDebug() << "base_force" << " : " << _force[0] << " " << _force[1] << " " << _force[2] << " " << _force[3] << " " << _force[4] << " " << _force[5];
+
 				qDebug() << "force" << " : " << force[0] << " " << force[1] << " " << force[2] << " " << force[3] << " " << force[4] << " " << force[5];
 
-				//force[0] = force[1] = force[3] = force[4] = force[5] = 0;
-				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
+				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star); //目标向量在移动坐标系下的表示
+
+				cv::Vec3d _targetVec_rigid = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //刚体公式的目标向量在移动坐标系下的表示 ！！！！！！！！！[后续要删掉]
 
 				normalVector_array.push_back(_targetVec);
+
+				normalVector_rigid_array.push_back(_targetVec_rigid); //！！！！！！！！！[后续要删掉]
 
 				if (normalVector_array.size() == norm_count) {
 
 					cv::Vec3d sum{ 0.0,0.0,0.0 };
 
+					cv::Vec3d sum_rigid{ 0.0,0.0,0.0 };//！！！！！！！！！[后续要删掉]
+
 					for (const auto& vec : normalVector_array)
 						sum += vec;
 
+					for (const auto& vec : normalVector_rigid_array) //！！！！！！！！！[后续要删掉]
+						sum_rigid += vec;							//！！！！！！！！！[后续要删掉]
+
 					sum /= static_cast<double>(normalVector_array.size());
+
+					sum_rigid /= static_cast<double>(normalVector_rigid_array.size());//！！！！！！！！！[后续要删掉]
 
 					_targetVec = sum;
 
-					if(cv::norm(_targetVec) > 1e-8)
+					_targetVec_rigid = sum_rigid;//！！！！！！！！！[后续要删掉]
+
+					if (cv::norm(_targetVec) > 1e-8)
 						cv::normalize(_targetVec, _targetVec);
-					
+
+					if (cv::norm(_targetVec_rigid) > 1e-8)//！！！！！！！！！[后续要删掉]
+						cv::normalize(_targetVec_rigid, _targetVec_rigid);//！！！！！！！！！[后续要删掉]
+
 					cv::Vec3d targetVec = rotateVecToTarget(_targetVec, RotMatMotion2Base);//在基座标系下的目标向量表示
+
+					cv::Vec3d targetVec_rigid = rotateVecToTarget(_targetVec_rigid, RotMatMotion2Base);//在基座标系下的目标向量表示  ！！！！！！！！！[后续要删掉]
 
 					//------------------------------------------补偿模块----------------------------------------------
 
 					cv::Vec3d vCompensation_in_base = rotateVecToTarget(vCompensation, RotMatMotion2Base); //计算补偿
 
-					//----------------------------------------------------------------------------------------------
+					//--------------------------------------------------------------------------------------------
 
 					if (cv::norm(targetVec) != 0) {
 
 						curRotationVector = CalculateRotationVector(-sixthAxis, targetVec);
+
+						curRotationVector_rigid = CalculateRotationVector(-sixthAxis, targetVec_rigid);//！！！！！！！！！[后续要删掉]
 
 						//------------------------------------------补偿模块----------------------------------------------
 
@@ -1125,10 +1181,10 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 						//--------------------------------------------------------------------------------------------
 
-						qDebug() << "RotMatMotion2Base:" << endl << 
-						RotMatMotion2Base.at<double>(0, 0) << RotMatMotion2Base.at<double>(0, 1) << RotMatMotion2Base.at<double>(0, 2) << endl <<
-						RotMatMotion2Base.at<double>(1, 0) << RotMatMotion2Base.at<double>(1, 1) << RotMatMotion2Base.at<double>(1, 2) << endl <<
-						RotMatMotion2Base.at<double>(2, 0) << RotMatMotion2Base.at<double>(2, 1) << RotMatMotion2Base.at<double>(2, 2) << endl;
+						qDebug() << "RotMatMotion2Base:" << endl <<
+							RotMatMotion2Base.at<double>(0, 0) << RotMatMotion2Base.at<double>(0, 1) << RotMatMotion2Base.at<double>(0, 2) << endl <<
+							RotMatMotion2Base.at<double>(1, 0) << RotMatMotion2Base.at<double>(1, 1) << RotMatMotion2Base.at<double>(1, 2) << endl <<
+							RotMatMotion2Base.at<double>(2, 0) << RotMatMotion2Base.at<double>(2, 1) << RotMatMotion2Base.at<double>(2, 2) << endl;
 
 						qDebug() << "_targetVec :" << _targetVec[0] << _targetVec[1] << _targetVec[2] << endl;
 						qDebug() << "_targetVec_size" << RAD_TO_DEG(cv::norm(_targetVec)) << endl;
@@ -1143,7 +1199,11 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 						//与 0 0 1 的夹角
 						auto rrot = CalculateRotationVector(targetVec, { 0,0,1 });
-						qDebug() << "targetVec and {0,0,1} 's rotVec_size :" << RAD_TO_DEG(cv::norm(rrot)) << endl;;
+						qDebug() << "targetVec and {0,0,1} 's rotVec_size :" << RAD_TO_DEG(cv::norm(rrot)) << endl;
+
+						//与 0 0 1 的夹角 //！！！！！！！！！[后续要删掉]
+						auto rrot1 = CalculateRotationVector(targetVec_rigid, { 0,0,1 }); //！！！！！！！！！[后续要删掉]
+						qDebug() << "targetVec_rigid and {0,0,1} 's rotVec_size :" << RAD_TO_DEG(cv::norm(rrot1)) << endl; //！！！！！！！！！[后续要删掉]
 
 						//------------------------------------------------------------------------------------------------------------
 
@@ -1155,10 +1215,16 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 						//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
 						//ResizeVector(curRotationVector, curRotationVector_size);
+
+						//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
+						//ResizeVector(curRotationVector, curRotationVector_size);
 					}
 					else {
 						curRotationVector = cv::Vec3d{ 0,0,0 };
 						curRotationVector_size = 0;
+
+						curRotationVector_rigid = cv::Vec3d{ 0,0,0 }; //！！！！！！！！！[后续要删掉]
+						curRotationVector_rigid_size = 0;//！！！！！！！！！[后续要删掉]
 					}
 				}
 
@@ -1168,19 +1234,29 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 				curRotationVector_array.push_back(curRotationVector);
 
+				curRotationVector_rigid_array.push_back(curRotationVector_rigid);//！！！！！！！！！[后续要删掉]
+
 				normalVector_array.clear();
+				
+				normalVector_rigid_array.clear();//！！！！！！！！！[后续要删掉]
 			}
 
 			if (curRotationVector_array.size() == count) { //收集十组矢量就可以调整姿态了
 
 				expectRotationVector = averageRotationVector(curRotationVector_array);
 
+				expectRotationVector_rigid = averageRotationVector(curRotationVector_rigid_array);//！！！！！！！！！[后续要删掉]
+
 				qDebug() << "expectRotationVector before resize :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
 				qDebug() << "expectRotationVector_size before resize" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
+
+				ResizeVector(expectRotationVector_rigid, 5 * Δθ < cv::norm(expectRotationVector_rigid) ? Δθ : 0); // ？ //！！！！！！！！！[后续要删掉]
 
 				ResizeVector(expectRotationVector, 5 * Δθ < cv::norm(expectRotationVector) ? Δθ : 0); // ？
 
 				curRotationVector_array.clear();
+
+				curRotationVector_rigid_array.clear();//！！！！！！！！！[后续要删掉]
 
 				qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
 				qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
@@ -1193,6 +1269,10 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			if (cur - t > 6000) { 
 				newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] ,expectRotationVector[1] ,expectRotationVector[2] });
+				//新的姿态设置完成后 置0
+				expectRotationVector = cv::Vec3d(0, 0, 0);
+
+				expectRotationVector = cv::Vec3d(0, 0, 0);
 			}
 			else newPose = pose;
 			
@@ -1243,7 +1323,6 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		}
 		rtde_c->servoStop();
-
 
 
 		////我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
@@ -2450,7 +2529,7 @@ vector<double> Dy::Impedance_control::get_RxRyRz_from_xitaX_and_xitaY_and_xitaZ(
 //	return cv::Vec3d(nx, ny, nz);
 //}
 
-cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<double>& force, double R, double l,bool isCompensation) {
+cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<double>& force, double R, double l,bool isCompensation, double tau_0, double gamma, double E_star) {
 
 	double Fx = force[0], Fy = force[1], Fz = force[2];
 	double Mx = force[3], My = force[4], Mz = force[5];
@@ -2495,16 +2574,43 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 	cv::Vec3d normalized_v;
 	cv::normalize(v, normalized_v);
 
+	
 
-
+	//k 临近搜索点算法
 	if (isCompensation) {
 
 		qDebug() << "start compensation" << endl;
 		// k临近点搜索
 		
-		//【】这里继续增加！
+		//计算移动坐标系到等效点坐标系的旋转矩阵
+		auto calculateRotationMatrix = [](double alpha, double beta, double R)->cv::Matx33d {
+			// 计算三角函数值
+			double cos_alpha = std::cos(alpha);
+			double sin_alpha = std::sin(alpha);
+			double cos_beta = std::cos(beta);
+			double sin_beta = std::sin(beta);
 
-		double Mx_p = 0, My_p = 0, Mz_p = 0; 
+			// 定义向量
+			cv::Vec3d x_e(R * cos(alpha), 0, R * sin(alpha) * cos(beta));
+			cv::Vec3d y_e(-R * R * sin(alpha) * sin(alpha) * sin(beta) * cos(beta),
+				R * R * sin(alpha) * sin(alpha) * cos(beta) * cos(beta) + R * R * cos(alpha) * cos(alpha),
+				R * R * sin(alpha) * sin(beta) * cos(alpha));
+			cv::Vec3d z_e(-R * sin(alpha) * cos(beta), -R * sin(alpha) * sin(beta), R * cos(alpha));
+
+			// 归一化向量
+			cv::Vec3d norm_x_e = x_e / cv::norm(x_e);
+			cv::Vec3d norm_y_e = y_e / cv::norm(y_e);
+			cv::Vec3d norm_z_e = z_e / cv::norm(z_e);
+
+			// 创建转换矩阵 _e^m{R}
+			cv::Matx33d rotation_matrix(
+				norm_x_e[0], norm_y_e[0], norm_z_e[0],
+				norm_x_e[1], norm_y_e[1], norm_z_e[1],
+				norm_x_e[2], norm_y_e[2], norm_z_e[2]
+			);
+
+			return rotation_matrix;
+		};
 
 		double cosAlpha = (-B + std::sqrt(discriminant)) / (A * R);
 
@@ -2514,7 +2620,7 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 
 		double beta = acos(cosBeta);
 
-		int k = 5; // 假设 k = 5, 可以根据需要修改
+		int k = 25; // 假设 k = 5, 可以根据需要修改
 
 		double delta_alpha = 0.01; // α的步长，根据具体情况进行调整
 
@@ -2536,6 +2642,31 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 				double x = Fy * R * cos(alphas[i]) + Fz * R * sin(alphas[i]) * sin(betas[j]) + Fy * l;
 				double y = -Fz * R * sin(alphas[i]) * cos(betas[j]) - Fx * R * cos(alphas[i]) - Fx * l;
 				double z = -Fx * R * sin(alphas[i]) * sin(betas[j]) + Fy * R * sin(alphas[i]) * cos(betas[j]);
+
+				//移动坐标系到等效点坐标系的旋转矩阵及其转置矩阵
+				cv::Matx33d rotation_matrix = calculateRotationMatrix(alphas[i], betas[j], R);
+				cv::Matx33d rotation_matrix_t = rotation_matrix.t();
+
+				cv::Vec3d F_m{ Fx,Fy,Fz };
+
+				//等效点坐标系下的力
+				cv::Vec3d F_e = rotation_matrix_t * F_m;
+
+				//计算My_e
+				double a_H = std::pow((3 * F_e[2] *R) / (4 * E_star), 1.0 / 3.0);
+				double A = M_PI * std::pow(a_H, 2);
+				double tau = tau_0 + gamma * F_e[2] / A;
+				double a_H_4 = std::pow(a_H, 4);
+				double My_e = -(tau * M_PI * a_H_4) / (4 * R);
+
+				//计算Mx_e
+				double Mx_e = -(F_e[1] * std::pow(a_H, 2)) / (4 * R);
+
+				cv::Vec3d M_e = { Mx_e,My_e,0 };
+
+				cv::Vec3d M_p = rotation_matrix * M_e;
+
+				double Mx_p = M_p[0], My_p = M_p[1], Mz_p = M_p[2];
 
 				// 计算r(alpha_i, beta_j)
 				double r = std::pow(Mx - x - Mx_p, 2) + std::pow(My - y - My_p, 2) + std::pow(Mz - z - Mz_p, 2);

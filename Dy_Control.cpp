@@ -947,10 +947,10 @@ void Dy_Control::BaseNowIC_Button_function() {
         double M = ui.M_lineEdit->text().toDouble();
         double B = ui.B_lineEdit->text().toDouble();
         double K = ui.K_lineEdit->text().toDouble();
-        double M_θ = ui.M_xita_lineEdit->text().toDouble();
-        double B_θ = ui.B_xita_lineEdit->text().toDouble();
-        double K_θ = ui.K_xita_lineEdit->text().toDouble();
-        ic = new Dy::Impedance_control(M, B, K, M_θ, B_θ, K_θ, new Dy::BpNet(), rtde_c, rtde_r);
+        double tau_0 = ui.tau_0_lineEdit->text().toDouble();
+        double gamma = ui.gamma_lineEdit->text().toDouble();
+        double E_star = ui.E_star_lineEdit->text().toDouble();
+        ic = new Dy::Impedance_control(M, B, K, tau_0, gamma, E_star, new Dy::BpNet(), rtde_c, rtde_r);
         ic->rotateLock = &rotateLock; //设置读写旋转变量锁
     }
     else {
@@ -1311,91 +1311,113 @@ void Dy_Control::on_test_Button_clicked() {
 
     // -----------------------------------------------------------------------------------------------------------
 
-    double Ts = 0.005;
-    double Vx = 0.002;
+    //double Ts = 0.005;
+    //double Vx = 0.002;
 
-    //初始法向位置位置以及对应力
-    double Xe = 0.5;
-    double Fe = 0;
+    ////初始法向位置位置以及对应力
+    //double Xe = 0.5;
+    //double Fe = 0;
 
-    //pid控制算法的三个数值S
-    double value_p = 0.0;
-    double value_i = 0.0;
-    double value_d = 0.0;
+    ////pid控制算法的三个数值S
+    //double value_p = 0.0;
+    //double value_i = 0.0;
+    //double value_d = 0.0;
 
-    //上一时刻的环境力 (用于微分环节数值求解)
-    double Fe_last = Fe;
+    ////上一时刻的环境力 (用于微分环节数值求解)
+    //double Fe_last = Fe;
 
-    double Fd = 5;
-    double A = 1.0; // 正弦波的振幅
-    double f = 1.0 / 5; // 正弦波的频率，单位Hz
-    double phi = 0; // 正弦波的相位，单位弧度
-    double C = Fd; // 正弦波的直流偏置
+    //double Fd = 5;
+    //double A = 1.0; // 正弦波的振幅
+    //double f = 1.0 / 5; // 正弦波的频率，单位Hz
+    //double phi = 0; // 正弦波的相位，单位弧度
+    //double C = Fd; // 正弦波的直流偏置
 
-    double Kp = 0.006;
-    double Ki = 0;
-    double Kd = 0.004;
+    //double Kp = 0.006;
+    //double Ki = 0;
+    //double Kd = 0.004;
 
-    //切向位置移动
-    double Xd_x = 0;
-    Xd_x += Vx * Ts;
+    ////切向位置移动
+    //double Xd_x = 0;
+    //Xd_x += Vx * Ts;
 
-    double Xc;//传给机器人指令的位置
+    //double Xc;//传给机器人指令的位置
 
-    timeb tb;
-    ftime(&tb);//获取毫秒
+    //timeb tb;
+    //ftime(&tb);//获取毫秒
 
-    long long startTime = tb.time * 1000 + tb.millitm;
+    //long long startTime = tb.time * 1000 + tb.millitm;
 
 
-    while (true)
-    {
-        timeb start;
-        ftime(&start);//获取毫秒
+    //while (true)
+    //{
+    //    timeb start;
+    //    ftime(&start);//获取毫秒
 
-        long long currentTime = start.time * 1000 + start.millitm;
-        double t = (currentTime - startTime) / 1000.0; // 转换为秒
+    //    long long currentTime = start.time * 1000 + start.millitm;
+    //    double t = (currentTime - startTime) / 1000.0; // 转换为秒
 
-        // 根据时间动态计算Fd的值
-        Fd = A * sin(2 * M_PI * f * t) + C;
+    //    // 根据时间动态计算Fd的值
+    //    Fd = A * sin(2 * M_PI * f * t) + C;
 
-        //PID控制算法本体
-        value_p = Fe - Fd; //目标偏差
-        value_i += (Fe - Fd) * Ts; //目标偏差的积分
-        value_d = (Fe - Fe_last) / Ts; //目标偏差的微分
-        //法向位置是传给机器人位置伺服闭环，同时与上一时刻和pid数值相加
-        Xc = Xe + Kp * value_p + Ki * value_i + Kd * value_d;
+    //    //PID控制算法本体
+    //    value_p = Fe - Fd; //目标偏差
+    //    value_i += (Fe - Fd) * Ts; //目标偏差的积分
+    //    value_d = (Fe - Fe_last) / Ts; //目标偏差的微分
+    //    //法向位置是传给机器人位置伺服闭环，同时与上一时刻和pid数值相加
+    //    Xc = Xe + Kp * value_p + Ki * value_i + Kd * value_d;
 
-        //切向移动
-        Xd_x += Vx * Ts;
+    //    //切向移动
+    //    Xd_x += Vx * Ts;
 
-        //输入指令
-        Xd_x;
-        Xc;
+    //    //输入指令
+    //    Xd_x;
+    //    Xc;
 
-        Xe = Xc;
-        Fe = (0.5 - Xe) * 200;
+    //    Xe = Xc;
+    //    Fe = (0.5 - Xe) * 200;
 
-        qDebug() << "Xc: " << Xc << endl;
-        qDebug() << "Fe: " << Fe << endl;
+    //    qDebug() << "Xc: " << Xc << endl;
+    //    qDebug() << "Fe: " << Fe << endl;
 
-        ////安全伺服移动
-        //Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
+    //    ////安全伺服移动
+    //    //Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
 
-        //更新参数,只更新法向
-        Fe_last = Fe;
-        //Xe = rtde_r->getActualTCPPose()[2];
-        //Fe = rtde_r->getActualTCPForce()[2];
+    //    //更新参数,只更新法向
+    //    Fe_last = Fe;
+    //    //Xe = rtde_r->getActualTCPPose()[2];
+    //    //Fe = rtde_r->getActualTCPForce()[2];
 
-        timeb end;
-        ftime(&end);//获取毫秒
-        int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-        if (deta_t < Ts * 1000) {
-            Sleep(Ts * 1000 - deta_t);
-        }
-    }
-    //rtde_c->servoStop();
+    //    timeb end;
+    //    ftime(&end);//获取毫秒
+    //    int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
+    //    if (deta_t < Ts * 1000) {
+    //        Sleep(Ts * 1000 - deta_t);
+    //    }
+    //}
+    ////rtde_c->servoStop();
 
+        // 定义输入参数
+    std::vector<double> force = { 1.0, 2.0, 3.0, 0.01, 0.05, 0.06 };
+    double R = 1.0;
+    double l = 1.0;
+    bool isCompensation = true;
+    double tau_0 = 0.1;
+    double gamma = 0.1;
+    double E_star = 1.0;
+    
+    // 创建 QElapsedTimer 实例并启动计时
+    QElapsedTimer timer;
+    timer.start();
+
+    // 调用函数
+    cv::Vec3d result = Dy::Impedance_control::calculateSurfaceNormalVector(force, R, l, isCompensation, tau_0, gamma, E_star);
+    
+    // 获取时间差（毫秒）
+    qint64 elapsed = timer.elapsed();
+    qDebug() << "Execution time:" << elapsed << "milliseconds";
+    
+    // 输出结果（可选）
+    qDebug() << "Result: (" << result[0] << ", " << result[1] << ", " << result[2] << ")";
 
 }
 

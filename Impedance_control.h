@@ -53,11 +53,11 @@ namespace Dy {
 	public:
 		//不控制姿态的初始化
 		Impedance_control(double M, double B, double K,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), M_θ(0), B_θ(0), K_θ(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
+			:M(M), B(B), K(K), tau_0(0), gamma(0), E_star(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
 
 		//控制姿态的初始化
-		Impedance_control(double M, double B, double K, double M_θ,double B_θ,double K_θ,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), M_θ(M_θ), B_θ(B_θ), K_θ(K_θ),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
+		Impedance_control(double M, double B, double K, double tau_0,double gamma,double E_star,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
+			:M(M), B(B), K(K), tau_0(tau_0), gamma(gamma), E_star(E_star),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
 
 		//第一个参数是 期望控制力，第二个参数是期望位置，第三个参数是控制周期，第四个参数是x轴的期望移动速度，第五个参数是servoL的t参数
 		void Normal_force_control( double Fd,double Xr,double Ts,double Vx,double tForServo);
@@ -72,6 +72,7 @@ namespace Dy {
 		void doTrain_IC(double &Xr,double Fd);
 
 		//法向力阻抗控制，基于当前位置的阻抗控制
+		//参数K目前没啥用
 		void Normal_force_control_base_on_now(double Fd, double Ts, vector<double>_moveUnitDirInWorld, double V, double tForServo,double sigma,int mode,double downLimit,double R,double LengthOfSensor2MassageHeadCentre,double K);
 
 	public://下面是一些辅助功能函数
@@ -101,9 +102,9 @@ namespace Dy {
 		////当计算出现错误（如对负数开方）时，会返回0向量
 		//cv::Vec3d calculateSurfaceNormalVector(const std::vector<double>& force, double & k,double R);
 
-		//根据皮肤模型和六维度力以及k值获取未知曲面法向量,具体原理见语雀,,R为按摩头半径，l为传感器中心到按摩头的距离，isCompensation为是否添加补偿，这里添加补偿是水平时候算出来的法向量，将其补偿掉，具体原理见语雀将坐标系建于传感器中心
-		//当计算出现错误（如对负数开方）时，会返回0向量
-		cv::Vec3d calculateSurfaceNormalVector(const std::vector<double>& force, double R,double l,bool isCompensation = false);
+		//根据皮肤模型和六维度力获取未知曲面法向量,具体原理见语雀,,R为按摩头半径，l为传感器中心到按摩头的距离，isCompensation为是否使用K临近搜索点算法来弥补刚体算法的缺陷，理论见我的语雀针对柔性作业的姿态调整理论，具体原理见语雀将坐标系建于传感器中心
+		//当计算出现错误（如对负数开方）时，会返回0向量 
+		static cv::Vec3d calculateSurfaceNormalVector(const std::vector<double>& force, double R,double l,bool isCompensation = false,double tau_0 = 0,double gamma = 0,double E_star = 0);
 
 		
 	public:
@@ -117,10 +118,10 @@ namespace Dy {
 		double M;
 		double B;
 		double K;
-		//姿态阻抗三系数
-		double M_θ;
-		double B_θ;
-		double K_θ;
+		//皮肤力学性能三系数 tau_0 gamma压力系数 E_star 等效杨氏模量
+		double tau_0;
+		double gamma;
+		double E_star;
 		//移动的过程中用于训练使用的
 		vector<double> vFz;
 		vector<double> vXz;
