@@ -53,11 +53,11 @@ namespace Dy {
 	public:
 		//不控制姿态的初始化
 		Impedance_control(double M, double B, double K,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), tau_0(0), gamma(0), E_star(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
+			:M(M), B(B), K(K), tau_0(0), gamma(0), E_star(0),k(0), delta_alpha(0), delta_beta(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
 
 		//控制姿态的初始化
-		Impedance_control(double M, double B, double K, double tau_0,double gamma,double E_star,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), tau_0(tau_0), gamma(gamma), E_star(E_star),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
+		Impedance_control(double M, double B, double K, double tau_0,double gamma,double E_star,int k,double delta_alpha,double delta_beta,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
+			:M(M), B(B), K(K), tau_0(tau_0), gamma(gamma), E_star(E_star),k(k), delta_alpha(delta_alpha), delta_beta(delta_beta),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
 
 		//第一个参数是 期望控制力，第二个参数是期望位置，第三个参数是控制周期，第四个参数是x轴的期望移动速度，第五个参数是servoL的t参数
 		void Normal_force_control( double Fd,double Xr,double Ts,double Vx,double tForServo);
@@ -104,7 +104,7 @@ namespace Dy {
 
 		//根据皮肤模型和六维度力获取未知曲面法向量,具体原理见语雀,,R为按摩头半径，l为传感器中心到按摩头的距离，isCompensation为是否使用K临近搜索点算法来弥补刚体算法的缺陷，理论见我的语雀针对柔性作业的姿态调整理论，具体原理见语雀将坐标系建于传感器中心
 		//当计算出现错误（如对负数开方）时，会返回0向量 
-		static cv::Vec3d calculateSurfaceNormalVector(const std::vector<double>& force, double R,double l,bool isCompensation = false,double tau_0 = 0,double gamma = 0,double E_star = 0);
+		static cv::Vec3d calculateSurfaceNormalVector(const std::vector<double>& force, double R,double l,bool isCompensation = false,double tau_0 = 0,double gamma = 0,double E_star = 0,int _k = 0,double _delta_alpha = 0,double _delta_beta = 0);
 
 		
 	public:
@@ -130,6 +130,11 @@ namespace Dy {
 		// 水平平移时，计算出来的法向量在移动坐标系下的表示 这部分是用来姿态补偿的
 		static cv::Vec3d vCompensation;
 		static bool hasCompensation; // 是否已经进行了补偿
+
+		//k临近搜索点算法的相关参数
+		int k; //k值
+		double delta_alpha;
+		double delta_beta;
 
 		RTDEControlInterface* rtde_c;
 		RTDEReceiveInterface* rtde_r;

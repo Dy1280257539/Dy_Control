@@ -1810,7 +1810,7 @@
                      <item>
                       <widget class="QLineEdit" name="tau_0_lineEdit">
                        <property name="text">
-                        <string>134000</string>
+                        <string>-17500</string>
                        </property>
                       </widget>
                      </item>
@@ -1824,7 +1824,7 @@
                      <item>
                       <widget class="QLineEdit" name="gamma_lineEdit">
                        <property name="text">
-                        <string>-0.2028</string>
+                        <string>2.37</string>
                        </property>
                       </widget>
                      </item>
@@ -1838,14 +1838,14 @@
                      <item>
                       <widget class="QLineEdit" name="E_star_lineEdit">
                        <property name="text">
-                        <string>16217.43598</string>
+                        <string>66019.99797 </string>
                        </property>
                       </widget>
                      </item>
                     </layout>
                    </item>
                    <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="2,2,1,2,2,2,2">
+                    <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="2,2,1,2,2,2,2,2,2,2">
                      <item>
                       <widget class="QLabel" name="label_38">
                        <property name="text">
@@ -1863,7 +1863,7 @@
                      <item>
                       <widget class="QLabel" name="label_69">
                        <property name="text">
-                        <string>k初始值(公式):</string>
+                        <string>k临近搜索点k值:</string>
                        </property>
                        <property name="alignment">
                         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1879,22 +1879,55 @@
                         </sizepolicy>
                        </property>
                        <property name="text">
-                        <string>23</string>
+                        <string>5</string>
                        </property>
                       </widget>
                      </item>
                      <item>
-                      <spacer name="horizontalSpacer_9">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
+                      <widget class="QLabel" name="label_93">
+                       <property name="text">
+                        <string>alpha步长：</string>
                        </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                        </property>
-                      </spacer>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="delta_alpha_lineEdit">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>10</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>0.0005</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_94">
+                       <property name="text">
+                        <string>beta步长：</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="delta_beta_lineEdit">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>10</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="text">
+                        <string>0.0005</string>
+                       </property>
+                      </widget>
                      </item>
                      <item>
                       <widget class="QLabel" name="label_59">

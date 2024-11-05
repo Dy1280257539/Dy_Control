@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'Dy_ControlBHJsbr.ui'
+** Form generated from reading UI file 'Dy_ControlFTXVoC.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef DY_CONTROLBHJSBR_H
-#define DY_CONTROLBHJSBR_H
+#ifndef DY_CONTROLFTXVOC_H
+#define DY_CONTROLFTXVOC_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -283,7 +283,10 @@ public:
     QLineEdit *sigma_lineEdit;
     QLabel *label_69;
     QLineEdit *k_formulas_lineEdit;
-    QSpacerItem *horizontalSpacer_9;
+    QLabel *label_93;
+    QLineEdit *delta_alpha_lineEdit;
+    QLabel *label_94;
+    QLineEdit *delta_beta_lineEdit;
     QLabel *label_59;
     QHBoxLayout *horizontalLayout_17;
     QLineEdit *downLimit_lineEdit;
@@ -385,7 +388,7 @@ public:
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
         scrollAreaWidgetContents->setEnabled(true);
-        scrollAreaWidgetContents->setGeometry(QRect(0, -187, 1202, 964));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -214, 1202, 991));
         sizePolicy.setHeightForWidth(scrollAreaWidgetContents->sizePolicy().hasHeightForWidth());
         scrollAreaWidgetContents->setSizePolicy(sizePolicy);
         gridLayout_15 = new QGridLayout(scrollAreaWidgetContents);
@@ -1732,9 +1735,31 @@ public:
 
         horizontalLayout_13->addWidget(k_formulas_lineEdit);
 
-        horizontalSpacer_9 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        label_93 = new QLabel(page_3);
+        label_93->setObjectName(QString::fromUtf8("label_93"));
+        label_93->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
-        horizontalLayout_13->addItem(horizontalSpacer_9);
+        horizontalLayout_13->addWidget(label_93);
+
+        delta_alpha_lineEdit = new QLineEdit(page_3);
+        delta_alpha_lineEdit->setObjectName(QString::fromUtf8("delta_alpha_lineEdit"));
+        sizePolicy5.setHeightForWidth(delta_alpha_lineEdit->sizePolicy().hasHeightForWidth());
+        delta_alpha_lineEdit->setSizePolicy(sizePolicy5);
+
+        horizontalLayout_13->addWidget(delta_alpha_lineEdit);
+
+        label_94 = new QLabel(page_3);
+        label_94->setObjectName(QString::fromUtf8("label_94"));
+        label_94->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+
+        horizontalLayout_13->addWidget(label_94);
+
+        delta_beta_lineEdit = new QLineEdit(page_3);
+        delta_beta_lineEdit->setObjectName(QString::fromUtf8("delta_beta_lineEdit"));
+        sizePolicy5.setHeightForWidth(delta_beta_lineEdit->sizePolicy().hasHeightForWidth());
+        delta_beta_lineEdit->setSizePolicy(sizePolicy5);
+
+        horizontalLayout_13->addWidget(delta_beta_lineEdit);
 
         label_59 = new QLabel(page_3);
         label_59->setObjectName(QString::fromUtf8("label_59"));
@@ -1760,6 +1785,9 @@ public:
         horizontalLayout_13->setStretch(4, 2);
         horizontalLayout_13->setStretch(5, 2);
         horizontalLayout_13->setStretch(6, 2);
+        horizontalLayout_13->setStretch(7, 2);
+        horizontalLayout_13->setStretch(8, 2);
+        horizontalLayout_13->setStretch(9, 2);
 
         verticalLayout_12->addLayout(horizontalLayout_13);
 
@@ -2318,15 +2346,19 @@ public:
         label_29->setText(QApplication::translate("Dy_ControlClass", "  K:", nullptr));
         K_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0", nullptr));
         label_60->setText(QApplication::translate("Dy_ControlClass", "  tau_0:", nullptr));
-        tau_0_lineEdit->setText(QApplication::translate("Dy_ControlClass", "134000", nullptr));
+        tau_0_lineEdit->setText(QApplication::translate("Dy_ControlClass", "-17500", nullptr));
         label_61->setText(QApplication::translate("Dy_ControlClass", "  gamma:", nullptr));
-        gamma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "-0.2028", nullptr));
+        gamma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "2.37", nullptr));
         label_62->setText(QApplication::translate("Dy_ControlClass", "  E_star:", nullptr));
-        E_star_lineEdit->setText(QApplication::translate("Dy_ControlClass", "16217.43598", nullptr));
+        E_star_lineEdit->setText(QApplication::translate("Dy_ControlClass", "66019.99797 ", nullptr));
         label_38->setText(QApplication::translate("Dy_ControlClass", " sigma(\350\207\252\351\200\202\345\272\224mode\346\211\200\344\275\277\347\224\250):", nullptr));
         sigma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.035", nullptr));
-        label_69->setText(QApplication::translate("Dy_ControlClass", "k\345\210\235\345\247\213\345\200\274(\345\205\254\345\274\217):", nullptr));
-        k_formulas_lineEdit->setText(QApplication::translate("Dy_ControlClass", "23", nullptr));
+        label_69->setText(QApplication::translate("Dy_ControlClass", "k\344\270\264\350\277\221\346\220\234\347\264\242\347\202\271k\345\200\274:", nullptr));
+        k_formulas_lineEdit->setText(QApplication::translate("Dy_ControlClass", "5", nullptr));
+        label_93->setText(QApplication::translate("Dy_ControlClass", "alpha\346\255\245\351\225\277\357\274\232", nullptr));
+        delta_alpha_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.0005", nullptr));
+        label_94->setText(QApplication::translate("Dy_ControlClass", "beta\346\255\245\351\225\277\357\274\232", nullptr));
+        delta_beta_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.0005", nullptr));
         label_59->setText(QApplication::translate("Dy_ControlClass", "\344\270\213\351\231\215\351\231\220\351\200\237(m/s):", nullptr));
         downLimit_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.05", nullptr));
         label_36->setText(QApplication::translate("Dy_ControlClass", " tForServo(s):", nullptr));
@@ -2376,4 +2408,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // DY_CONTROLBHJSBR_H
+#endif // DY_CONTROLFTXVOC_H

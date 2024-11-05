@@ -9,6 +9,7 @@
 #include<qmath.h>
 #include<list>
 #include<fstream>
+#include <boost/math/constants/constants.hpp>
 
 /*
     注意事项：
@@ -175,12 +176,16 @@ std::vector<double> calculateToolPointSpeed(const std::vector<double>& tcp_speed
 * @param end_effector_direction 末端移动方向(仅在坐标系下xoy平面)
 * @param base_frame_z_axis 基座标z轴向量
 * @param rtde_r RTDEReceiveInterface类的指针
+* @param isCompensate 是否开启补偿
+* @param enableFilter 是否开启滤波
 * @return 移动坐标系下的力信息
 */
 std::vector<double> getMotionCoordinateSystemForce(const Vec3d& sixth_axis,
     const Vec3d& end_effector_direction,
     const Vec3d& base_frame_z_axis,
-    ur_rtde::RTDEReceiveInterface* rtde_r);
+    ur_rtde::RTDEReceiveInterface* rtde_r,
+    bool isCompensate,
+    bool enableFilter);
 
 
 /**
@@ -591,3 +596,22 @@ bool saveToCsv(const std::vector<std::vector<double>>& data, const std::string& 
  * @return vector<vector<double>> 读取的数据
  */
 std::vector<std::vector<double>> readFromCsv(const std::string& path);
+
+
+
+/**
+ * 高精度acos  可以提高在边界值附近的精度。如1,-1这些值的精度
+ *
+ * @param x 余弦值
+ * @return double 反余弦值
+ */
+double high_precision_acos(double x);
+
+
+/**
+ * 高精度acos，可以提高在边界值（接近0）附近的精度。
+ *
+ * @param x 余弦值，范围在 [-1, 1]
+ * @return double 反余弦值
+ */
+double taylor_series_acos(double x);

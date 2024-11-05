@@ -950,7 +950,10 @@ void Dy_Control::BaseNowIC_Button_function() {
         double tau_0 = ui.tau_0_lineEdit->text().toDouble();
         double gamma = ui.gamma_lineEdit->text().toDouble();
         double E_star = ui.E_star_lineEdit->text().toDouble();
-        ic = new Dy::Impedance_control(M, B, K, tau_0, gamma, E_star, new Dy::BpNet(), rtde_c, rtde_r);
+        int k = ui.k_formulas_lineEdit->text().toInt();
+        double delta_alpha = ui.delta_alpha_lineEdit->text().toDouble();
+        double delta_beta = ui.delta_beta_lineEdit->text().toDouble();
+        ic = new Dy::Impedance_control(M, B, K, tau_0, gamma, E_star,k,delta_alpha,delta_beta, new Dy::BpNet(), rtde_c, rtde_r);
         ic->rotateLock = &rotateLock; //设置读写旋转变量锁
     }
     else {

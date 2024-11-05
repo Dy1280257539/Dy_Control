@@ -59,6 +59,7 @@
     <Import Project="matlab.props" />
     <Import Project="personLib.props" />
     <Import Project="casadi_ipopt.props" />
+    <Import Project="boost.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -71,6 +72,7 @@
     <Import Project="intel.realsense.props" />
     <Import Project="matlab.props" />
     <Import Project="casadi_ipopt.props" />
+    <Import Project="boost.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">

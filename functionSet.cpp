@@ -235,7 +235,9 @@ std::vector<double> calculateToolPointSpeed(const std::vector<double>& tcp_speed
 std::vector<double> getMotionCoordinateSystemForce(const Vec3d& sixth_axis,
 	const Vec3d& end_effector_direction,
 	const Vec3d& base_frame_z_axis,
-	ur_rtde::RTDEReceiveInterface* rtde_r) {
+	ur_rtde::RTDEReceiveInterface* rtde_r,
+	bool isCompensate,
+	bool enableFilter) {
 
 	Vec3d x_axis;
 	Vec3d y_axis;
@@ -244,7 +246,7 @@ std::vector<double> getMotionCoordinateSystemForce(const Vec3d& sixth_axis,
 	computeMotionCoordinateSystem(sixth_axis, end_effector_direction, base_frame_z_axis,
 		x_axis, y_axis, z_axis,rtde_r);
 
-	std::vector<double> sensorforce = getSensorForce(rtde_r,true,true);
+	std::vector<double> sensorforce = getSensorForce(rtde_r, isCompensate, enableFilter);
 
 	std::vector<double> sensorPose = getSensorPose(rtde_r);
 
@@ -1281,4 +1283,42 @@ std::vector<std::vector<double>> readFromCsv(const std::string& path) {
 
 	inFile.close();
 	return data;
+}
+
+double high_precision_acos(double x)
+{
+	return std::atan2(std::sqrt(1 - x * x), x);
+}
+
+
+/**
+ * 高精度acos，可以提高在边界值（接近0）附近的精度。
+ *
+ * @param x 余弦值，范围在 [-1, 1]
+ * @return double 反余弦值
+ */
+double taylor_series_acos(double x) {
+	// 如果 x 接近边界值 -1 或 1，直接返回标准库的结果以避免误差
+	if (x <= -1.0) return boost::math::constants::pi<double>();
+	if (x >= 1.0) return 0.0;
+
+	const double pi_over_2 = boost::math::constants::pi<double>() / 2;
+
+	// 对于 x 接近 0 的情况，使用泰勒展开提高精度
+	double x2 = x * x;    // x^2
+	double x3 = x2 * x;   // x^3
+	double x5 = x3 * x2;  // x^5
+	double x7 = x5 * x2;  // x^7
+	double x9 = x7 * x2;  // x^9
+	double x11 = x9 * x2; // x^11
+	double x13 = x11 * x2;// x^13
+
+	// 使用前 8 项泰勒展开
+	return pi_over_2 - x
+		- (x3 / 6)
+		- (3 * x5 / 40)
+		- (5 * x7 / 112)
+		- (35 * x9 / 1152)
+		- (63 * x11 / 2816)
+		- (231 * x13 / 13312);
 }

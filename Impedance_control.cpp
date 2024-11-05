@@ -839,7 +839,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		Vec3d end_effector_direction{ _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, {0,0,1}, rtde_r);
+		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, {0,0,1}, rtde_r,false,false);
 
 		//------------------------------------------------------------
 
@@ -886,7 +886,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 		else {
 			cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
 
-			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star); //目标向量在移动坐标系下的表示
+			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star,k,delta_alpha,delta_beta); //目标向量在移动坐标系下的表示
 
 			cv::Vec3d _targetVec_rigid = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //刚体公式的目标向量在移动坐标系下的表示 ！！！！！！！！！[后续要删掉]
 
@@ -1009,7 +1009,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r);
+		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
 
 		//-----------------------------------------------------------
 
@@ -1054,7 +1054,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
 			//另外下降过程不用考虑姿态
-			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r)[2] < Fd / 2)
+			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false)[2] < Fd / 2)
 			{
 				qDebug() << " protect";
 				auto temp_Xc = Xc;
@@ -1076,7 +1076,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 				if (deta_t < Ts * 1000) {
 					Sleep(Ts * 1000 - deta_t);
 				}
-				//Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
+				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
 				ftime(&start);//获取毫秒
 
 				continue;
@@ -1092,7 +1092,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 					Sleep(Ts * 1000 - deta_t);
 				}
 
-				//Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
+				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
 				ftime(&start);//获取毫秒
 			}
 
@@ -1122,7 +1122,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 				qDebug() << "force" << " : " << force[0] << " " << force[1] << " " << force[2] << " " << force[3] << " " << force[4] << " " << force[5];
 
-				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star); //目标向量在移动坐标系下的表示
+				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre, true, tau_0, gamma, E_star,k, delta_alpha, delta_beta); //目标向量在移动坐标系下的表示
 
 				cv::Vec3d _targetVec_rigid = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //刚体公式的目标向量在移动坐标系下的表示 ！！！！！！！！！[后续要删掉]
 
@@ -1288,9 +1288,10 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 			pose[1] += V * direction_vector[1] * Ts;
 			pose[2] += V * direction_vector[2] * Ts;
 
-			pose[3] = newPose[3];
-			pose[4] = newPose[4];
-			pose[5] = newPose[5];
+			//需要调整姿态的时候就把下面的启用下面的代码
+			//pose[3] = newPose[3];
+			//pose[4] = newPose[4];
+			//pose[5] = newPose[5];
 
 			//-------------------获取移动坐标系下的力------------------------
 
@@ -1300,7 +1301,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r);
+			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
 
 
 			//-----------------------------------------------------------
@@ -2097,7 +2098,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		Vec3d end_effector_direction{ _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r);
+		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
 
 		//------------------------------------------------------------
 
@@ -2186,7 +2187,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r);
+		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
 
 		//-----------------------------------------------------------
 
@@ -2222,7 +2223,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
 			//另外下降过程不用考虑姿态
-			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r)[2] < Fd / 2)
+			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false)[2] < Fd / 2)
 			{
 				qDebug() << " protect";
 				auto temp_Xc = Xc;
@@ -2327,7 +2328,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
 
-			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r);
+			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
 
 			//-----------------------------------------------------------
 
@@ -2529,7 +2530,7 @@ vector<double> Dy::Impedance_control::get_RxRyRz_from_xitaX_and_xitaY_and_xitaZ(
 //	return cv::Vec3d(nx, ny, nz);
 //}
 
-cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<double>& force, double R, double l,bool isCompensation, double tau_0, double gamma, double E_star) {
+cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<double>& force, double R, double l,bool isCompensation, double tau_0, double gamma, double E_star,int _k, double _delta_alpha, double _delta_beta) {
 
 	double Fx = force[0], Fy = force[1], Fz = force[2];
 	double Mx = force[3], My = force[4], Mz = force[5];
@@ -2574,8 +2575,6 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 	cv::Vec3d normalized_v;
 	cv::normalize(v, normalized_v);
 
-	
-
 	//k 临近搜索点算法
 	if (isCompensation) {
 
@@ -2612,27 +2611,24 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 			return rotation_matrix;
 		};
 
-		double cosAlpha = (-B + std::sqrt(discriminant)) / (A * R);
+		double alpha = taylor_series_acos(cos_alpha);
 
-		double alpha = acos(cosAlpha);
+		double beta = taylor_series_acos(cos_beta);
 
-		double cosBeta = (-My - Fx * R * cosAlpha - Fx * l) / (Fz * R * sin(alpha));
+		int k = _k; //k临近搜索的k值 ，可以根据需要修改
 
-		double beta = acos(cosBeta);
-
-		int k = 25; // 假设 k = 5, 可以根据需要修改
-
-		double delta_alpha = 0.01; // α的步长，根据具体情况进行调整
-
-		double delta_beta = 0.01; // β的步长，根据具体情况进行调整
+		//这里步长太大容易出问题！！！！！血的教训！
+		double delta_alpha = _delta_alpha; // α的步长，根据具体情况进行调整 
+		double delta_beta = _delta_beta; // β的步长，根据具体情况进行调整
 
 		std::vector<double> alphas(k), betas(k);
 		double min_result = std::numeric_limits<double>::max(); // 用于存储最小结果
 
 		// 计算所有可能的alpha_i和beta_j
+		int mid = (k - 1) / 2;  // 中心位置的索引
 		for (int i = 0; i < k; ++i) {
-			alphas[i] = alpha + (i - (k + 1) / 2.0) * delta_alpha;
-			betas[i] = beta + (i - (k + 1) / 2.0) * delta_beta;
+			alphas[i] = alpha + (i - mid) * delta_alpha;
+			betas[i] = beta + (i - mid) * delta_beta;
 		}
 
 		// 计算r(alpha_i, beta_j)的最小值
@@ -2662,14 +2658,15 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 				//计算Mx_e
 				double Mx_e = -(F_e[1] * std::pow(a_H, 2)) / (4 * R);
 
-				cv::Vec3d M_e = { Mx_e,My_e,0 };
+				cv::Vec3d M_e = { Mx_e,My_e, 0};
 
 				cv::Vec3d M_p = rotation_matrix * M_e;
 
 				double Mx_p = M_p[0], My_p = M_p[1], Mz_p = M_p[2];
 
 				// 计算r(alpha_i, beta_j)
-				double r = std::pow(Mx - x - Mx_p, 2) + std::pow(My - y - My_p, 2) + std::pow(Mz - z - Mz_p, 2);
+				double r = std::pow(Mx - x - Mx_p, 2) + std::pow(My - y - My_p, 2); 
+				//double r = std::pow(Mx - x, 2) + std::pow(My - y, 2); 
 
 				// 检查是否是最小值
 				if (r < min_result) {
@@ -2680,7 +2677,13 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 			}
 		}
 
-		v = { -R * sin(alpha) * cos(beta) , -R * sin(alpha) * sin(beta) ,R * cos(alpha) };
+		double cos_alpha = cos(alpha);
+		double d1 = -(My + Fx * l + Fx * R * cos_alpha) / Fz * R;
+		double d2 = (Mx - Fy * l + Fy * R * cos_alpha) / Fz * R;
+		double d3 = cos_alpha;
+
+		//v = { -1 * cos(beta) , -1 * sin(beta) , tan(alpha) };
+		cv::Vec3d v(d1, d2, d3);
 		cv::normalize(v, normalized_v);
 
 	}
