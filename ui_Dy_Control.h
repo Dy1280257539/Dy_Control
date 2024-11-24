@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'Dy_ControlFTXVoC.ui'
+** Form generated from reading UI file 'Dy_ControlrnpNGk.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef DY_CONTROLFTXVOC_H
-#define DY_CONTROLFTXVOC_H
+#ifndef DY_CONTROLRNPNGK_H
+#define DY_CONTROLRNPNGK_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -31,8 +31,9 @@ class Ui_Dy_ControlClass
 {
 public:
     QWidget *centralWidget;
-    QWidget *layoutWidget;
-    QHBoxLayout *horizontalLayout_10;
+    QGridLayout *gridLayout_11;
+    QWidget *widget_1;
+    QGridLayout *gridLayout_10;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
     QGridLayout *gridLayout_15;
@@ -340,7 +341,7 @@ public:
     QSpacerItem *horizontalSpacer_17;
     QScrollArea *scrollArea_2;
     QWidget *scrollAreaWidgetContents_2;
-    QWidget *layoutWidget1;
+    QWidget *layoutWidget;
     QVBoxLayout *verticalLayout_2;
     QLabel *endoscope_color_image;
     QGridLayout *gridLayout_19;
@@ -357,7 +358,7 @@ public:
     {
         if (Dy_ControlClass->objectName().isEmpty())
             Dy_ControlClass->setObjectName(QString::fromUtf8("Dy_ControlClass"));
-        Dy_ControlClass->resize(2038, 1003);
+        Dy_ControlClass->resize(1932, 896);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -366,29 +367,31 @@ public:
         Dy_ControlClass->setTabShape(QTabWidget::Rounded);
         centralWidget = new QWidget(Dy_ControlClass);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
-        layoutWidget = new QWidget(centralWidget);
-        layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(11, 11, 1791, 781));
-        horizontalLayout_10 = new QHBoxLayout(layoutWidget);
-        horizontalLayout_10->setSpacing(7);
-        horizontalLayout_10->setContentsMargins(11, 11, 11, 11);
-        horizontalLayout_10->setObjectName(QString::fromUtf8("horizontalLayout_10"));
-        horizontalLayout_10->setContentsMargins(0, 0, 0, 0);
-        scrollArea = new QScrollArea(layoutWidget);
+        gridLayout_11 = new QGridLayout(centralWidget);
+        gridLayout_11->setSpacing(6);
+        gridLayout_11->setContentsMargins(11, 11, 11, 11);
+        gridLayout_11->setObjectName(QString::fromUtf8("gridLayout_11"));
+        widget_1 = new QWidget(centralWidget);
+        widget_1->setObjectName(QString::fromUtf8("widget_1"));
+        gridLayout_10 = new QGridLayout(widget_1);
+        gridLayout_10->setSpacing(6);
+        gridLayout_10->setContentsMargins(11, 11, 11, 11);
+        gridLayout_10->setObjectName(QString::fromUtf8("gridLayout_10"));
+        scrollArea = new QScrollArea(widget_1);
         scrollArea->setObjectName(QString::fromUtf8("scrollArea"));
         QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
         sizePolicy1.setHeightForWidth(scrollArea->sizePolicy().hasHeightForWidth());
         scrollArea->setSizePolicy(sizePolicy1);
-        scrollArea->setMinimumSize(QSize(1225, 0));
+        scrollArea->setMinimumSize(QSize(0, 0));
         scrollArea->setLineWidth(1);
         scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
         scrollAreaWidgetContents->setEnabled(true);
-        scrollAreaWidgetContents->setGeometry(QRect(0, -214, 1202, 991));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 918, 964));
         sizePolicy.setHeightForWidth(scrollAreaWidgetContents->sizePolicy().hasHeightForWidth());
         scrollAreaWidgetContents->setSizePolicy(sizePolicy);
         gridLayout_15 = new QGridLayout(scrollAreaWidgetContents);
@@ -2075,26 +2078,26 @@ public:
 
         scrollArea->setWidget(scrollAreaWidgetContents);
 
-        horizontalLayout_10->addWidget(scrollArea);
+        gridLayout_10->addWidget(scrollArea, 0, 0, 1, 1);
 
-        scrollArea_2 = new QScrollArea(layoutWidget);
+        scrollArea_2 = new QScrollArea(widget_1);
         scrollArea_2->setObjectName(QString::fromUtf8("scrollArea_2"));
         scrollArea_2->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         scrollArea_2->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         scrollArea_2->setWidgetResizable(true);
         scrollAreaWidgetContents_2 = new QWidget();
         scrollAreaWidgetContents_2->setObjectName(QString::fromUtf8("scrollAreaWidgetContents_2"));
-        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 534, 2000));
+        scrollAreaWidgetContents_2->setGeometry(QRect(0, 0, 917, 2000));
         scrollAreaWidgetContents_2->setMinimumSize(QSize(500, 2000));
-        layoutWidget1 = new QWidget(scrollAreaWidgetContents_2);
-        layoutWidget1->setObjectName(QString::fromUtf8("layoutWidget1"));
-        layoutWidget1->setGeometry(QRect(0, 0, 527, 362));
-        verticalLayout_2 = new QVBoxLayout(layoutWidget1);
+        layoutWidget = new QWidget(scrollAreaWidgetContents_2);
+        layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
+        layoutWidget->setGeometry(QRect(0, 0, 527, 362));
+        verticalLayout_2 = new QVBoxLayout(layoutWidget);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         verticalLayout_2->setContentsMargins(0, 0, 0, 0);
-        endoscope_color_image = new QLabel(layoutWidget1);
+        endoscope_color_image = new QLabel(layoutWidget);
         endoscope_color_image->setObjectName(QString::fromUtf8("endoscope_color_image"));
         QSizePolicy sizePolicy7(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy7.setHorizontalStretch(0);
@@ -2116,22 +2119,22 @@ public:
         gridLayout_19 = new QGridLayout();
         gridLayout_19->setSpacing(6);
         gridLayout_19->setObjectName(QString::fromUtf8("gridLayout_19"));
-        endoscope_open_Button = new QPushButton(layoutWidget1);
+        endoscope_open_Button = new QPushButton(layoutWidget);
         endoscope_open_Button->setObjectName(QString::fromUtf8("endoscope_open_Button"));
 
         gridLayout_19->addWidget(endoscope_open_Button, 0, 0, 1, 1);
 
-        endoscope_read_Button = new QPushButton(layoutWidget1);
+        endoscope_read_Button = new QPushButton(layoutWidget);
         endoscope_read_Button->setObjectName(QString::fromUtf8("endoscope_read_Button"));
 
         gridLayout_19->addWidget(endoscope_read_Button, 0, 1, 1, 2);
 
-        endoscopeBuffer_clear_Button = new QPushButton(layoutWidget1);
+        endoscopeBuffer_clear_Button = new QPushButton(layoutWidget);
         endoscopeBuffer_clear_Button->setObjectName(QString::fromUtf8("endoscopeBuffer_clear_Button"));
 
         gridLayout_19->addWidget(endoscopeBuffer_clear_Button, 0, 3, 1, 1);
 
-        control_label = new KeyEventLabel(layoutWidget1);
+        control_label = new KeyEventLabel(layoutWidget);
         control_label->setObjectName(QString::fromUtf8("control_label"));
         control_label->setStyleSheet(QString::fromUtf8("background-color: rgb(255, 255, 255);\n"
 "font: 16pt \"Agency FB\";\n"
@@ -2140,17 +2143,17 @@ public:
 
         gridLayout_19->addWidget(control_label, 0, 4, 2, 1);
 
-        endoscope_save_Button = new QPushButton(layoutWidget1);
+        endoscope_save_Button = new QPushButton(layoutWidget);
         endoscope_save_Button->setObjectName(QString::fromUtf8("endoscope_save_Button"));
 
         gridLayout_19->addWidget(endoscope_save_Button, 1, 0, 1, 2);
 
-        label_64 = new QLabel(layoutWidget1);
+        label_64 = new QLabel(layoutWidget);
         label_64->setObjectName(QString::fromUtf8("label_64"));
 
         gridLayout_19->addWidget(label_64, 1, 2, 1, 1);
 
-        Save_endoscope_lineEdit = new QLineEdit(layoutWidget1);
+        Save_endoscope_lineEdit = new QLineEdit(layoutWidget);
         Save_endoscope_lineEdit->setObjectName(QString::fromUtf8("Save_endoscope_lineEdit"));
 
         gridLayout_19->addWidget(Save_endoscope_lineEdit, 1, 3, 1, 1);
@@ -2160,7 +2163,10 @@ public:
 
         scrollArea_2->setWidget(scrollAreaWidgetContents_2);
 
-        horizontalLayout_10->addWidget(scrollArea_2);
+        gridLayout_10->addWidget(scrollArea_2, 0, 1, 1, 1);
+
+
+        gridLayout_11->addWidget(widget_1, 0, 0, 1, 1);
 
         Dy_ControlClass->setCentralWidget(centralWidget);
         statusBar = new QStatusBar(Dy_ControlClass);
@@ -2408,4 +2414,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // DY_CONTROLFTXVOC_H
+#endif // DY_CONTROLRNPNGK_H

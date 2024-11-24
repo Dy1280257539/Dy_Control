@@ -4,6 +4,30 @@ Dy_Control::Dy_Control(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+
+
+    //---------------------------------------设置分割器代码-----------------------------------------------//
+
+    QSplitter* mainSplitter = new QSplitter(Qt::Horizontal);//新建水平分割器
+
+    //mainSplitter->resize(600,300);//如果把分割器放置在layout中，那么就无需设置size
+
+    QString style = QString("QSplitter::handle { background-color: rgb(179, 179, 179); }") //分割线的颜色
+        + QString("QSplitter {border: 2px solid green}");
+    mainSplitter->setStyleSheet(style);
+    mainSplitter->setHandleWidth(5);//分割线的宽度
+
+    mainSplitter->setChildrenCollapsible(false);//不允许把分割出的子窗口拖小到0，最小值被限定为sizeHint或maxSize/minSize
+
+    mainSplitter->addWidget(ui.scrollArea);//把ui中拖出的各个控件拿走，放到分割器里面
+    mainSplitter->addWidget(ui.scrollArea_2);
+    //    mainSplitter->addWidget(new QLabel("QLabel"));//也可以在分割器里面新建控件
+
+    this->centralWidget()->layout()->replaceWidget(ui.widget_1, mainSplitter);//把ui中拖出的容器QWidget换成分割器
+    ui.widget_1->hide();
+
+    //-------------------------------------------------------------------------------------------------//
+
     init();
 
 
