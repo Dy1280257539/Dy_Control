@@ -66,9 +66,9 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>-187</y>
+          <y>0</y>
           <width>1202</width>
-          <height>964</height>
+          <height>991</height>
          </rect>
         </property>
         <property name="sizePolicy">

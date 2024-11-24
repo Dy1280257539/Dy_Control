@@ -2621,6 +2621,8 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 		double delta_alpha = _delta_alpha; // α的步长，根据具体情况进行调整 
 		double delta_beta = _delta_beta; // β的步长，根据具体情况进行调整
 
+		qDebug() << "k :" << k << " delta_alpha :" << delta_alpha << " delta_beta :" << delta_beta << endl;
+
 		std::vector<double> alphas(k), betas(k);
 		double min_result = std::numeric_limits<double>::max(); // 用于存储最小结果
 
@@ -2658,7 +2660,7 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 				//计算Mx_e
 				double Mx_e = -(F_e[1] * std::pow(a_H, 2)) / (4 * R);
 
-				cv::Vec3d M_e = { Mx_e,My_e, 0};
+				cv::Vec3d M_e = { Mx_e,My_e, 0.0};
 
 				cv::Vec3d M_p = rotation_matrix * M_e;
 
@@ -2667,6 +2669,9 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 				// 计算r(alpha_i, beta_j)
 				double r = std::pow(Mx - x - Mx_p, 2) + std::pow(My - y - My_p, 2); 
 				//double r = std::pow(Mx - x, 2) + std::pow(My - y, 2); 
+
+				//qDebug() << "alpha :" << alphas[i] << " beta:" << betas[j] << " r :" << r << endl;
+				//qDebug() << "Mx_p :" << Mx_p << " My_p :" << My_p << endl;
 
 				// 检查是否是最小值
 				if (r < min_result) {
