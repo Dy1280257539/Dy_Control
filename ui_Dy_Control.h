@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'Dy_ControlrnpNGk.ui'
+** Form generated from reading UI file 'Dy_ControlLXbJZx.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef DY_CONTROLRNPNGK_H
-#define DY_CONTROLRNPNGK_H
+#ifndef DY_CONTROLLXBJZX_H
+#define DY_CONTROLLXBJZX_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -391,7 +391,7 @@ public:
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName(QString::fromUtf8("scrollAreaWidgetContents"));
         scrollAreaWidgetContents->setEnabled(true);
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 918, 964));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -187, 997, 991));
         sizePolicy.setHeightForWidth(scrollAreaWidgetContents->sizePolicy().hasHeightForWidth());
         scrollAreaWidgetContents->setSizePolicy(sizePolicy);
         gridLayout_15 = new QGridLayout(scrollAreaWidgetContents);
@@ -2198,7 +2198,7 @@ public:
         label_67->setText(QApplication::translate("Dy_ControlClass", "\346\214\211\346\221\251\345\244\264\347\220\203\345\215\212\345\276\204:mm", nullptr));
         MassageHeadRadius_lineEdit->setText(QApplication::translate("Dy_ControlClass", "10", nullptr));
         label_68->setText(QApplication::translate("Dy_ControlClass", "\344\274\240\346\204\237\345\231\250\345\210\260\347\220\203\345\277\203\350\267\235\347\246\273:mm", nullptr));
-        LengthOfSensor2MassageHeadCentre_lineEdit->setText(QApplication::translate("Dy_ControlClass", "90", nullptr));
+        LengthOfSensor2MassageHeadCentre_lineEdit->setText(QApplication::translate("Dy_ControlClass", "145", nullptr));
         button_zeroFSensor->setText(QApplication::translate("Dy_ControlClass", "\344\274\240\346\204\237\345\231\250\346\270\205\351\233\266", nullptr));
         label_2->setText(QApplication::translate("Dy_ControlClass", "\347\273\264\345\272\246(\345\212\233\345\215\225\344\275\215)", nullptr));
         label_5->setText(QApplication::translate("Dy_ControlClass", "X(N)(\302\260)", nullptr));
@@ -2338,7 +2338,7 @@ public:
         label_55->setText(QApplication::translate("Dy_ControlClass", "mode:", nullptr));
         ICmode_lineEdit->setText(QApplication::translate("Dy_ControlClass", "1", nullptr));
         label_30->setText(QApplication::translate("Dy_ControlClass", " Fd:", nullptr));
-        Fd_lineEdit->setText(QApplication::translate("Dy_ControlClass", "3", nullptr));
+        Fd_lineEdit->setText(QApplication::translate("Dy_ControlClass", "5", nullptr));
         label_65->setText(QApplication::translate("Dy_ControlClass", "\347\247\273\345\212\250\346\226\271\345\220\221\345\220\221\351\207\217(\344\270\226\347\225\214\345\235\220\346\240\207\347\263\273XYZ):", nullptr));
         move_dirX_world_lineEdit->setText(QApplication::translate("Dy_ControlClass", "1", nullptr));
         move_dirY_world_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0", nullptr));
@@ -2360,11 +2360,11 @@ public:
         label_38->setText(QApplication::translate("Dy_ControlClass", " sigma(\350\207\252\351\200\202\345\272\224mode\346\211\200\344\275\277\347\224\250):", nullptr));
         sigma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.035", nullptr));
         label_69->setText(QApplication::translate("Dy_ControlClass", "k\344\270\264\350\277\221\346\220\234\347\264\242\347\202\271k\345\200\274:", nullptr));
-        k_formulas_lineEdit->setText(QApplication::translate("Dy_ControlClass", "5", nullptr));
+        k_formulas_lineEdit->setText(QApplication::translate("Dy_ControlClass", "25", nullptr));
         label_93->setText(QApplication::translate("Dy_ControlClass", "alpha\346\255\245\351\225\277\357\274\232", nullptr));
-        delta_alpha_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.0005", nullptr));
+        delta_alpha_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.01", nullptr));
         label_94->setText(QApplication::translate("Dy_ControlClass", "beta\346\255\245\351\225\277\357\274\232", nullptr));
-        delta_beta_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.0005", nullptr));
+        delta_beta_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.01", nullptr));
         label_59->setText(QApplication::translate("Dy_ControlClass", "\344\270\213\351\231\215\351\231\220\351\200\237(m/s):", nullptr));
         downLimit_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.05", nullptr));
         label_36->setText(QApplication::translate("Dy_ControlClass", " tForServo(s):", nullptr));
@@ -2414,4 +2414,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // DY_CONTROLRNPNGK_H
+#endif // DY_CONTROLLXBJZX_H

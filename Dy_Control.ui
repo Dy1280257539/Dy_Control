@@ -57,9 +57,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
-            <width>918</width>
-            <height>964</height>
+            <y>-187</y>
+            <width>997</width>
+            <height>991</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -326,7 +326,7 @@
                             </sizepolicy>
                            </property>
                            <property name="text">
-                            <string>90</string>
+                            <string>145</string>
                            </property>
                           </widget>
                          </item>
@@ -1664,7 +1664,7 @@
                           </sizepolicy>
                          </property>
                          <property name="text">
-                          <string>3</string>
+                          <string>5</string>
                          </property>
                         </widget>
                        </item>
@@ -1870,7 +1870,7 @@
                           </sizepolicy>
                          </property>
                          <property name="text">
-                          <string>5</string>
+                          <string>25</string>
                          </property>
                         </widget>
                        </item>
@@ -1893,7 +1893,7 @@
                           </sizepolicy>
                          </property>
                          <property name="text">
-                          <string>0.0005</string>
+                          <string>0.01</string>
                          </property>
                         </widget>
                        </item>
@@ -1916,7 +1916,7 @@
                           </sizepolicy>
                          </property>
                          <property name="text">
-                          <string>0.0005</string>
+                          <string>0.01</string>
                          </property>
                         </widget>
                        </item>

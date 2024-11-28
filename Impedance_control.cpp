@@ -2555,7 +2555,7 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 
 	double root_term = std::sqrt(discriminant);
 
-	double cos_alpha = (-B + root_term) / A * R;
+	double cos_alpha = (-B + root_term) / (A * R);
 	double sin_alpha = std::sqrt(1 - cos_alpha * cos_alpha);
 	double cos_beta = (-My - Fx * R * cos_alpha - Fx * l) / (Fz * R * sin_alpha);
 	double sin_beta = (Mx - Fy * R * cos_alpha - Fy * l) / (Fz * R * sin_alpha);
@@ -2566,8 +2566,8 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 
 	//qDebug() << "row_v :" << v[0] << " " << v[1] << " " << v[2] << " " << endl;
 
-	double d1 = -(My + Fx * l + Fx * R * cos_alpha) / Fz * R;
-	double d2 = (Mx - Fy * l + Fy * R * cos_alpha) / Fz * R;
+	double d1 = -(My + Fx * l + Fx * R * cos_alpha) / (Fz * R);
+	double d2 = (Mx - Fy * l + Fy * R * cos_alpha) / (Fz * R);
 	double d3 = cos_alpha;
 
 	cv::Vec3d v(d1, d2, d3);
@@ -2621,7 +2621,7 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 		double delta_alpha = _delta_alpha; // α的步长，根据具体情况进行调整 
 		double delta_beta = _delta_beta; // β的步长，根据具体情况进行调整
 
-		qDebug() << "k :" << k << " delta_alpha :" << delta_alpha << " delta_beta :" << delta_beta << endl;
+		qDebug() << "k :" << k << " delta_alpha :" << delta_alpha << " delta_beta :" << delta_beta << " alpha :" << alpha << " beta:" << beta << endl;
 
 		std::vector<double> alphas(k), betas(k);
 		double min_result = std::numeric_limits<double>::max(); // 用于存储最小结果
@@ -2683,8 +2683,8 @@ cv::Vec3d Dy::Impedance_control::calculateSurfaceNormalVector(const std::vector<
 		}
 
 		double cos_alpha = cos(alpha);
-		double d1 = -(My + Fx * l + Fx * R * cos_alpha) / Fz * R;
-		double d2 = (Mx - Fy * l + Fy * R * cos_alpha) / Fz * R;
+		double d1 = -(My + Fx * l + Fx * R * cos_alpha) / (Fz * R);
+		double d2 = (Mx - Fy * l + Fy * R * cos_alpha) / (Fz * R);
 		double d3 = cos_alpha;
 
 		//v = { -1 * cos(beta) , -1 * sin(beta) , tan(alpha) };
