@@ -805,6 +805,8 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		double φt = 0;
 
+		double delta = 1e-8;
+
 		int count = 5; //收集多少个Ts周期对应的旋转矢量进行一次合算
 
 		int norm_count = 1; //收集多少个法向量进行一次合算法向量
@@ -1025,12 +1027,31 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		//-------------------------------------------------------------
 
+		//--------------------------------阻抗控制关键代码（不同论文不同方法）-----------------------------------
+
+		//段论文方法
+		//double Fe = force[2];//法向环境力
+		//φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
+		//Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+
+		//个人语雀方法，参见 https://www.yuque.com/lindong-9iuax/cs7vo1/qdtbp12zzqivm45x
 		double Fe = force[2];//法向环境力
+		if (fabs(Fe - 0.0) < 1e-10)
+			Fe = delta;
 		φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+		double factor = B * pow(Fe, (1.0 / nd - 1.0));
+		double denominator = (Xc_dt - Xe_dt) + delta;
+		double term1 = φt;
+		double term2 = (Fd - Fe) / factor;
+		double term3 = (sigma * (Fd - Fe)) / B;
+		double term4 = (sigma * (Fd - Fe)) / (Ts * B);
+		double bracket = term1 - term2 + term3 + term4;
+		double deltaB = (factor / denominator) * bracket;
+		Xc_ddt = Xe_ddt + (1 / M) * (Fe - Fd - (B + deltaB) * (Xc_dt - Xe_dt));
+
+		//-----------------------------------------------------------------------------------------------------
 
 		startFlag = true;//开启！
-
 
 		// --------------------初始时间点----------------------------
 
@@ -1318,9 +1339,31 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			//-------------------------------------------------------------
 
+
+
+			//--------------------------------阻抗控制关键代码（不同论文不同方法）-----------------------------------
+
+			//段论文的方法
+			//Fe = force[2];//法向环境力
+			//φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
+			//Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+
+			//个人语雀方法，参见 https://www.yuque.com/lindong-9iuax/cs7vo1/qdtbp12zzqivm45x
 			Fe = force[2];//法向环境力
+			if (fabs(Fe - 0.0) < 1e-10)
+				Fe = delta;
 			φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-			Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+			double factor = B * pow(Fe, (1.0 / nd - 1.0));
+			double denominator = (Xc_dt - Xe_dt) + delta;
+			double term1 = φt;
+			double term2 = (Fd - Fe) / factor;
+			double term3 = (sigma * (Fd - Fe)) / B;
+			double term4 = (sigma * (Fd - Fe)) / (Ts * B);
+			double bracket = term1 - term2 + term3 + term4;
+			double deltaB = (factor / denominator) * bracket;
+			Xc_ddt = Xe_ddt + (1 / M) * (Fe - Fd - (B + deltaB) * (Xc_dt - Xe_dt));
+
+			//-----------------------------------------------------------------------------------------------------
 
 		}
 		rtde_c->servoStop();
@@ -2204,9 +2247,11 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 		//-------------------------------------------------------------
 
+		//段论文方法
 		double Fe = force[2];//法向环境力
 		φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
 		Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+
 
 		startFlag = true;//开启！
 
@@ -2333,7 +2378,7 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 			//-----------------------------------------------------------
 
 
-			//----------------计算基座标系到移动坐标系的旋转矩阵----------------
+			//----------------------------计算基座标系到移动坐标系的旋转矩阵----------------------------
 
 			computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
 
@@ -2343,8 +2388,9 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 
 			cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
 
-			//-------------------------------------------------------------
-
+			//-------------------------------------------------------------------------------------
+			
+			//段论文的方法
 			Fe = force[2];//法向环境力
 			φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
 			Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));

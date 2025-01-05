@@ -1748,7 +1748,7 @@
                       </layout>
                      </item>
                      <item>
-                      <layout class="QHBoxLayout" name="horizontalLayout_19" stretch="1,2,1,2,1,2,1,2,1,2,1,2">
+                      <layout class="QHBoxLayout" name="horizontalLayout_19" stretch="1,2,1,2,1,2,1,2,1,2,1,2,0,0">
                        <item>
                         <widget class="QLabel" name="label_27">
                          <property name="text">
@@ -1830,6 +1830,20 @@
                         <widget class="QLineEdit" name="E_star_lineEdit">
                          <property name="text">
                           <string>66019.99797 </string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="label_95">
+                         <property name="text">
+                          <string>nd:</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLineEdit" name="nd_lineEdit">
+                         <property name="text">
+                          <string>1.5</string>
                          </property>
                         </widget>
                        </item>

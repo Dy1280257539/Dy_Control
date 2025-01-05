@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'Dy_ControlLXbJZx.ui'
+** Form generated from reading UI file 'Dy_ControlhrflYi.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef DY_CONTROLLXBJZX_H
-#define DY_CONTROLLXBJZX_H
+#ifndef DY_CONTROLHRFLYI_H
+#define DY_CONTROLHRFLYI_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -279,6 +279,8 @@ public:
     QLineEdit *gamma_lineEdit;
     QLabel *label_62;
     QLineEdit *E_star_lineEdit;
+    QLabel *label_95;
+    QLineEdit *nd_lineEdit;
     QHBoxLayout *horizontalLayout_13;
     QLabel *label_38;
     QLineEdit *sigma_lineEdit;
@@ -1697,6 +1699,16 @@ public:
 
         horizontalLayout_19->addWidget(E_star_lineEdit);
 
+        label_95 = new QLabel(page_3);
+        label_95->setObjectName(QString::fromUtf8("label_95"));
+
+        horizontalLayout_19->addWidget(label_95);
+
+        nd_lineEdit = new QLineEdit(page_3);
+        nd_lineEdit->setObjectName(QString::fromUtf8("nd_lineEdit"));
+
+        horizontalLayout_19->addWidget(nd_lineEdit);
+
         horizontalLayout_19->setStretch(0, 1);
         horizontalLayout_19->setStretch(1, 2);
         horizontalLayout_19->setStretch(2, 1);
@@ -2357,6 +2369,8 @@ public:
         gamma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "2.37", nullptr));
         label_62->setText(QApplication::translate("Dy_ControlClass", "  E_star:", nullptr));
         E_star_lineEdit->setText(QApplication::translate("Dy_ControlClass", "66019.99797 ", nullptr));
+        label_95->setText(QApplication::translate("Dy_ControlClass", "nd:", nullptr));
+        nd_lineEdit->setText(QApplication::translate("Dy_ControlClass", "1.5", nullptr));
         label_38->setText(QApplication::translate("Dy_ControlClass", " sigma(\350\207\252\351\200\202\345\272\224mode\346\211\200\344\275\277\347\224\250):", nullptr));
         sigma_lineEdit->setText(QApplication::translate("Dy_ControlClass", "0.035", nullptr));
         label_69->setText(QApplication::translate("Dy_ControlClass", "k\344\270\264\350\277\221\346\220\234\347\264\242\347\202\271k\345\200\274:", nullptr));
@@ -2414,4 +2428,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // DY_CONTROLLXBJZX_H
+#endif // DY_CONTROLHRFLYI_H

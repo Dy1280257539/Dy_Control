@@ -53,11 +53,11 @@ namespace Dy {
 	public:
 		//不控制姿态的初始化
 		Impedance_control(double M, double B, double K,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), tau_0(0), gamma(0), E_star(0),k(0), delta_alpha(0), delta_beta(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
+			:M(M), B(B), K(K), tau_0(0), gamma(0), E_star(0),k(0), delta_alpha(0), delta_beta(0),nd(0),bpnet(bpnet),rtde_c(rtde_c),rtde_r(rtde_r),startFlag(false){};
 
 		//控制姿态的初始化
-		Impedance_control(double M, double B, double K, double tau_0,double gamma,double E_star,int k,double delta_alpha,double delta_beta,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
-			:M(M), B(B), K(K), tau_0(tau_0), gamma(gamma), E_star(E_star),k(k), delta_alpha(delta_alpha), delta_beta(delta_beta),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
+		Impedance_control(double M, double B, double K, double tau_0,double gamma,double E_star,int k,double delta_alpha,double delta_beta,double nd,BpNet* bpnet,RTDEControlInterface* rtde_c, RTDEReceiveInterface* rtde_r)
+			:M(M), B(B), K(K), tau_0(tau_0), gamma(gamma), E_star(E_star),k(k), delta_alpha(delta_alpha), delta_beta(delta_beta),nd(nd),bpnet(bpnet), rtde_c(rtde_c), rtde_r(rtde_r), startFlag(false){};
 
 		//第一个参数是 期望控制力，第二个参数是期望位置，第三个参数是控制周期，第四个参数是x轴的期望移动速度，第五个参数是servoL的t参数
 		void Normal_force_control( double Fd,double Xr,double Ts,double Vx,double tForServo);
@@ -135,6 +135,9 @@ namespace Dy {
 		int k; //k值
 		double delta_alpha;
 		double delta_beta;
+
+		//个人自适应阻抗控制参数 nd表示对 kn模型的 nd的预测值
+		double nd;
 
 		RTDEControlInterface* rtde_c;
 		RTDEReceiveInterface* rtde_r;
