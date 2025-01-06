@@ -603,6 +603,295 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 		}
 		rtde_c->servoStop();
 	}
+	else if (mode == -4) {
+
+		// 获取补偿向量专用 
+		
+		//我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
+		
+		vector<double> normalMotion_move{ 0,0,1 };//表示一个在移动坐标系下法向的移动增量
+		
+		//Xc是输给机器人的指令位置，Xe是期望环境的位置，ddt，dt，分别对应加速度速度
+		double Xc_ddt = 0;
+		double Xc_dt = 0;
+		double Xc = 0;
+		double Xe_ddt = 0;
+		double Xe_dt = 0;
+		double Xe = 0;
+		
+		double φt = 0;
+		
+		int count = 50; //收集多少个Ts周期对应的法向量进行一次合算
+		
+		vector<cv::Vec3d> vCompensation_array;
+		
+		vector<double> pose = rtde_r->getActualTCPPose();
+		
+		//-------------------获取移动坐标系下的力------------------------
+		
+		vector<double> cur_pose = rtde_r->getActualTCPPose();
+		
+		auto sixth_axis = getSixthAxisFromBasePose(cur_pose);
+		
+		Vec3d end_effector_direction{ _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
+		
+		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
+		
+		//------------------------------------------------------------
+		
+		//----------------计算基座标系到移动坐标系的旋转矩阵----------------
+		
+		Vec3d x_axis, y_axis, z_axis;
+		
+		computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
+		
+		cv::Mat RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
+		
+		cv::Mat RotMatMotion2Base = RotMatBase2Motion.t();
+		
+		cv::Vec3d RotVecBase2Motion;
+		
+		cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
+		
+		//------------------------------------------------------------
+		
+		//初始化参数
+		//皮肤平面，则Xe_ddt=0;Xe_dt=0;  以当前移动坐标系位置 建立一个固定坐标系，Xe为原点0  Xe作为Xc的初试点 Xc为在该固定坐标系下的输给机器人指令的位置
+		Xe_ddt = 0;
+		Xe_dt = 0;
+		Xe = 0;
+		Xc = Xe;
+		
+		//初始化期望位置加速度
+		Xc_ddt = 0;
+		
+		//阻抗控制本体
+		auto temp_Xc = Xc;//上一时刻的Xc
+		Xc_dt = Xc_dt + Xc_ddt * Ts;
+		Xc = Xc + Xc_dt * Ts;
+		normalMotion_move[2] = Xc - temp_Xc;
+		cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
+		
+		//根据目标向量计算移动角度
+		if (force[2] >= Fd / 2) { // 下降状态且力控尚未稳定,则不计算补偿法向量
+		
+			cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
+			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
+			vCompensation_array.push_back(_targetVec);
+		
+		}
+		
+		if (vCompensation_array.size() == count) { // 收集50个补偿法向量就求个平均
+		
+			hasCompensation = true;
+		
+			cv::Vec3d sum(0.0, 0.0, 0.0);
+		
+			for (const auto& vec : vCompensation_array)
+				sum += vec;
+		
+			vCompensation = sum / static_cast<double>(vCompensation_array.size());
+		
+			vCompensation_array.clear();
+		
+			cv::Vec3d vCompensation_in_base = rotateVecToTarget(vCompensation, RotMatMotion2Base);
+		
+			qDebug() << "vCompensation :" << vCompensation[0] << vCompensation[1] << vCompensation[2] << endl;
+			qDebug() << "vCompensation_size : " << RAD_TO_DEG(cv::norm(vCompensation)) << endl;
+		
+			qDebug() << "vCompensation_in_base :" << vCompensation_in_base[0] << vCompensation_in_base[1] << vCompensation_in_base[2] << endl;
+			qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
+		
+		}
+		
+		//期望位置
+		pose[0] += moveDistance[0];
+		pose[1] += moveDistance[1];
+		pose[2] += moveDistance[2];
+		
+		// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
+		vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
+		pose[0] += V * direction_vector[0] * Ts;
+		pose[1] += V * direction_vector[1] * Ts;
+		pose[2] += V * direction_vector[2] * Ts;
+		
+		
+		//-------------------获取移动坐标系下的力------------------------
+		
+		cur_pose = rtde_r->getActualTCPPose();
+		
+		sixth_axis = getSixthAxisFromBasePose(cur_pose);
+		
+		end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
+		
+		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
+		
+		//-----------------------------------------------------------
+		
+		
+		//----------------计算基座标系到移动坐标系的旋转矩阵----------------
+		
+		computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
+		
+		RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
+		
+		RotMatMotion2Base = RotMatBase2Motion.t();
+		
+		cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
+		
+		//-------------------------------------------------------------
+		
+		//段论文方法
+		double Fe = force[2];//法向环境力
+		φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
+		Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+		
+		
+		startFlag = true;//开启！
+		
+		timeb start;
+		ftime(&start);//获取毫秒,严格控制每个servoL指令之间的间隔为Ts！
+		while (startFlag)
+		{
+			if (!startFlag)//再三确认，防止其他线程关闭了阻抗控制
+				break;
+			//qDebug() << "Xc_ddt: " << Xc_ddt;
+			//qDebug() << "Xc_dt" << Xc_dt;
+			//qDebug() << "Xc" << Xc;
+			//qDebug() << "Fe" << world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2];
+		
+			//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
+			//另外下降过程不用考虑姿态
+			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false)[2] < Fd / 2)
+			{
+				qDebug() << " protect";
+				auto temp_Xc = Xc;
+				Xc -= downLimit * Ts; //例如按照0.1m/s 来下降计算，0.002s内走的距离就是0.0002;
+		
+				normalMotion_move[2] = Xc - temp_Xc;
+				cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出在移动坐标系下要移动的距离，并将该距离增量转化为世界坐标系下
+		
+				//期望位置
+				pose[0] += moveDistance[0];
+				pose[1] += moveDistance[1];
+				pose[2] += moveDistance[2];
+		
+				//严格控制每个servoL指令之间的间隔为Ts！
+				timeb end;
+				ftime(&end);//获取毫秒
+				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
+				//qDebug() << "deta_t:" << deta_t << endl;
+				if (deta_t < Ts * 1000) {
+					Sleep(Ts * 1000 - deta_t);
+				}
+				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
+				ftime(&start);//获取毫秒
+		
+				continue;
+			}
+			else
+			{
+				//严格控制每个servoL指令之间的间隔为Ts！
+				timeb end;
+				ftime(&end);//获取毫秒
+				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
+				//qDebug() << "deta_t:" << deta_t << endl;
+				if (deta_t < Ts * 1000) {
+					Sleep(Ts * 1000 - deta_t);
+				}
+				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
+				ftime(&start);//获取毫秒
+			}
+		
+			//更新数据
+			pose = rtde_r->getActualTCPPose();
+		
+			//阻抗控制算法本体
+			auto temp_Xc = Xc;//上一时刻的Xc
+			Xc_dt = Xc_dt + Xc_ddt * Ts;
+			Xc = Xc + Xc_dt * Ts;
+			normalMotion_move[2] = Xc - temp_Xc;
+			cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出要移动的距离
+		
+			//qDebug() << "Force :" << force[2] << endl;
+			//qDebug() << "moveDistance :" << moveDistance[0] << moveDistance[1] << moveDistance[2] << endl;
+			//qDebug() << "Xc :" << Xc << " Xc_dt:" << Xc_dt << " Xc_ddt:" << Xc_ddt << endl;
+		
+			if (force[2] >= Fd / 2) { // 下降状态且力控尚未稳定,则不计算补偿法向量
+		
+				cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
+				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
+				vCompensation_array.push_back(_targetVec);
+			}
+		
+			if (vCompensation_array.size() == count) { // 收集50个补偿法向量就求个平均
+		
+				hasCompensation = true;
+		
+				cv::Vec3d sum(0.0, 0.0, 0.0);
+		
+				for (const auto& vec : vCompensation_array)
+					sum += vec;
+		
+				vCompensation = sum / static_cast<double>(vCompensation_array.size());
+		
+				vCompensation_array.clear();
+		
+				cv::Vec3d vCompensation_in_base = rotateVecToTarget(vCompensation, RotMatMotion2Base);
+		
+				qDebug() << "vCompensation :" << vCompensation[0] << vCompensation[1] << vCompensation[2] << endl;
+				qDebug() << "vCompensation_size : " << RAD_TO_DEG(cv::norm(vCompensation)) << endl;
+		
+				qDebug() << "vCompensation_in_base :" << vCompensation_in_base[0] << vCompensation_in_base[1] << vCompensation_in_base[2] << endl;
+				qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
+			}
+		
+			//qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
+		
+			//更新这次期望位置
+			pose[0] += moveDistance[0];
+			pose[1] += moveDistance[1];
+			pose[2] += moveDistance[2];
+		
+			// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
+			vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
+			pose[0] += V * direction_vector[0] * Ts;
+			pose[1] += V * direction_vector[1] * Ts;
+			pose[2] += V * direction_vector[2] * Ts;
+		
+			//-------------------获取移动坐标系下的力------------------------
+		
+			auto cur_pose = rtde_r->getActualTCPPose();
+		
+			sixth_axis = getSixthAxisFromBasePose(cur_pose);
+		
+			end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
+		
+			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
+		
+			//-----------------------------------------------------------
+		
+		
+			//----------------------------计算基座标系到移动坐标系的旋转矩阵----------------------------
+		
+			computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
+		
+			RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
+		
+			RotMatMotion2Base = RotMatBase2Motion.t();
+		
+			cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
+		
+			//-------------------------------------------------------------------------------------
+		
+			//段论文的方法
+			Fe = force[2];//法向环境力
+			φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
+			Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
+		
+		}
+		rtde_c->servoStop();
+	}
 	else if (mode == 0)  //内窥镜与阻抗控制同时作用所使用，目的是探索与转角有关的影响因素 （这个mode 0 就对应这个内容，如果要改则Dy_Control cpp部分也要改）
 	{
 		if (rotateLock == nullptr) { //此功能需要有读写锁才能用
@@ -1364,1036 +1653,6 @@ void Dy::Impedance_control::Normal_force_control_base_on_now(double Fd, double T
 			Xc_ddt = Xe_ddt + (1 / M) * (Fe - Fd - (B + deltaB) * (Xc_dt - Xe_dt));
 
 			//-----------------------------------------------------------------------------------------------------
-
-		}
-		rtde_c->servoStop();
-
-
-		////我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
-
-		//Fd = -1 * Fd;//因为这里要转换为在TCP坐标系下，所以期望力10N要变成-10N
-
-		//vector<double> normalTCP_move{ 0,0,1 };//表示一个在TCP坐标系下法向的移动增量
-
-		////Xc是输给机器人的指令位置，Xe是期望环境的位置，ddt，dt，分别对应加速度速度
-		//double Xc_ddt = 0;
-		//double Xc_dt = 0;
-		//double Xc = 0;
-		//double Xe_ddt = 0;
-		//double Xe_dt = 0;
-		//double Xe = 0;
-
-		//double φt = 0;
-
-		//int count = 10; //收集多少个Ts周期对应的旋转矢量进行一次合算
-
-		//cv::Vec3d expectRotationVector{ 0,0,0 };//合算出来的期望旋转向量
-
-		//// 每个控制周期的轴角旋转速度 （绕某个固定轴旋转的速度）
-		//double Δθ = 40 * Ts * PI / 180 * count; //最前面的数字是每秒的度数（粗略）
-
-		//cv::Vec3d curRotationVector{ 0,0,0 }; //旋转矢量
-		//double curRotationVector_size = 0;//旋转矢量的大小
-
-		//vector<cv::Vec3d> curRotationVector_array;
-
-		////获取当前位置信息
-		//vector<double> pose = rtde_r->getActualTCPPose();
-
-		////初始化力信息 
-		//vector<double> force = rtde_r->getActualTCPForce();
-		//force = world_2tcp_force(force, pose);
-		////获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//auto myFormulaForce_and_Base2Formula = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-
-		//auto myFormulaForce = myFormulaForce_and_Base2Formula.first;
-
-		//auto Base2Formula = myFormulaForce_and_Base2Formula.second;
-
-		////初始化参数
-		////皮肤平面，则Xe_ddt=0;Xe_dt=0;  以当前TCP位置 建立一个固定坐标系，Xe为原点0  Xe作为Xc的初试点 Xc为在该固定坐标系下的输给机器人指令的位置
-		//Xe_ddt = 0;
-		//Xe_dt = 0;
-		//Xe = 0;
-		//Xc = Xe;
-
-		////初始化期望位置加速度
-		//Xc_ddt = 0;
-
-		////阻抗控制本体
-		//auto temp_Xc = Xc;//上一时刻的Xc
-		//Xc_dt = Xc_dt + Xc_ddt * Ts;
-		//Xc = Xc + Xc_dt * Ts;
-		//normalTCP_move[2] = Xc - temp_Xc;
-		//auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-		//
-		////根据目标向量计算移动角度
-		//if (force[2] > Fd / 2) { // 下降状态且力控尚未稳定,则不转动
-
-		//	curRotationVector = cv::Vec3d{ 0,0,0 };
-		//	curRotationVector_size = 0;
-		//}
-		//else {
-		//	cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-		//	cv::Vec3d _targetVec = calculateSurfaceNormalVector(myFormulaForce, R, LengthOfSensor2MassageHeadCentre);
-		//	cv::Mat Formula2Base = Base2Formula.inv();
-		//	cv::Vec3d targetVec = rotateVecToTarget(_targetVec, Formula2Base);//在基座标系下的目标向量表示
-		//	if (cv::norm(targetVec) != 0) {
-		//		curRotationVector = CalculateRotationVector(sixthAxis, targetVec);
-		//		//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
-		//		//ResizeVector(curRotationVector, curRotationVector_size);
-		//	}
-		//	else {
-		//		curRotationVector = cv::Vec3d{0,0,0};
-		//		curRotationVector_size = 0;
-		//	}
-		//}
-		//curRotationVector_array.push_back(curRotationVector);
-
-		//std::vector<double> newPose = pose;
-
-		//if (curRotationVector_array.size() == count) { //收集十组矢量就可以调整姿态了
-		//	
-		//	expectRotationVector = {0,0,0};
-		//	for (int i = 0; i < curRotationVector_array.size(); i++) {
-		//		
-		//		expectRotationVector[0] += curRotationVector_array[i][0];
-		//		expectRotationVector[1] += curRotationVector_array[i][1];
-		//		expectRotationVector[2] += curRotationVector_array[i][2];
-		//	}
-		//	expectRotationVector = expectRotationVector / (int)curRotationVector_array.size();
-		//	ResizeVector(expectRotationVector, 5 * Δθ < cv::norm(expectRotationVector) ? Δθ : 0);
-
-		//	curRotationVector_array.clear();
-
-		//	qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
-		//	qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
-		//}
-
-		//newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] / count,expectRotationVector[1] / count,expectRotationVector[2] / count });
-
-		////期望位置与期望姿态
-		//pose[0] += moveDistance[0];
-		//pose[1] += moveDistance[1];
-		//pose[2] += moveDistance[2];
-
-		//// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		//vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		//pose[0] += V * direction_vector[0] * Ts;
-		//pose[1] += V * direction_vector[1] * Ts;
-		//pose[2] += V * direction_vector[2] * Ts;
-
-		//pose[3] = newPose[3];
-		//pose[4] = newPose[4];
-		//pose[5] = newPose[5];
-
-		////下一次期望加速度 这里Fd与Fe都是在TCP方向上的
-		//force = rtde_r->getActualTCPForce();
-		//force = world_2tcp_force(force, pose);//转化为TCP坐标下的力
-
-		////获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//auto temp = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-		//myFormulaForce = temp.first;
-		//Base2Formula = temp.second;
-
-		//double Fe = force[2];//法向环境力
-		//φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		//Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-		//startFlag = true;//开启！
-
-		//timeb start;
-		//ftime(&start);//获取毫秒,严格控制每个servoL指令之间的间隔为Ts！
-		//while (startFlag)
-		//{
-		//	if (!startFlag)//再三确认，防止其他线程关闭了阻抗控制
-		//		break;
-		//	//qDebug() << "Xc_ddt: " << Xc_ddt;
-		//	//qDebug() << "Xc_dt" << Xc_dt;
-		//	//qDebug() << "Xc" << Xc;
-		//	//qDebug() << "Fe" << world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2];
-
-		//	//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
-		//	//另外下降过程不用考虑姿态
-		//	if (Xc_dt > downLimit && world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2] > Fd / 2)
-		//	{
-		//		qDebug() << " protect";
-		//		auto temp_Xc = Xc;
-		//		Xc += downLimit * Ts; //例如按照0.1m/s 来下降计算，0.002s内走的距离就是0.0002;
-
-		//		normalTCP_move[2] = Xc - temp_Xc;
-		//		auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-
-		//		//期望位置
-		//		pose[0] += moveDistance[0];
-		//		pose[1] += moveDistance[1];
-		//		pose[2] += moveDistance[2];
-
-		//		//严格控制每个servoL指令之间的间隔为Ts！
-		//		timeb end;
-		//		ftime(&end);//获取毫秒
-		//		int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-		//		//qDebug() << "deta_t:" << deta_t << endl;
-		//		if (deta_t < Ts * 1000) {
-		//			Sleep(Ts * 1000 - deta_t);
-		//		}
-		//		Safe_servoL(pose, 0, 0, tForServo, 0.03, 1000);
-		//		ftime(&start);//获取毫秒
-
-		//		continue;
-		//	}
-		//	else
-		//	{
-		//		//严格控制每个servoL指令之间的间隔为Ts！
-		//		timeb end;
-		//		ftime(&end);//获取毫秒
-		//		int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-		//		//qDebug() << "deta_t:" << deta_t << endl;
-		//		if (deta_t < Ts * 1000) {
-		//			Sleep(Ts * 1000 - deta_t);
-		//		}
-		//		Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
-		//		ftime(&start);//获取毫秒
-		//	}
-
-		//	//更新数据
-		//	pose = rtde_r->getActualTCPPose();
-
-		//	//阻抗控制算法本体
-		//	auto temp_Xc = Xc;//上一时刻的Xc
-		//	Xc_dt = Xc_dt + Xc_ddt * Ts;
-		//	Xc = Xc + Xc_dt * Ts;
-		//	normalTCP_move[2] = Xc - temp_Xc;
-		//	auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出要移动的距离
-		//	
-		//	//根据目标向量计算移动角度
-		//	if (force[2] > Fd / 2) { // 下降状态且力控尚未稳定,则不转动
-
-		//		curRotationVector = cv::Vec3d{ 0,0,0 };
-		//		curRotationVector_size = 0;
-		//	}
-		//	else {
-		//		cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-		//		cv::Vec3d _targetVec = calculateSurfaceNormalVector(myFormulaForce, R, LengthOfSensor2MassageHeadCentre);
-		//		cv::Mat Formula2Base = Base2Formula.inv();
-		//		cv::Vec3d targetVec = rotateVecToTarget(_targetVec, Formula2Base);//在基座标系下的目标向量表示
-		//		if (cv::norm(targetVec) != 0) {
-		//			curRotationVector = CalculateRotationVector(sixthAxis, targetVec);
-		//			//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
-		//			//ResizeVector(curRotationVector, curRotationVector_size);
-		//		}
-		//		else {
-		//			curRotationVector = cv::Vec3d{ 0,0,0 };
-		//			curRotationVector_size = 0;
-		//		}
-		//	}
-
-		//	curRotationVector_array.push_back(curRotationVector);
-
-		//	if (curRotationVector_array.size() == count) { //收集十组矢量就可以调整姿态了
-
-		//		expectRotationVector = { 0,0,0 };
-		//		for (int i = 0; i < curRotationVector_array.size(); i++) {
-
-		//			expectRotationVector[0] += curRotationVector_array[i][0];
-		//			expectRotationVector[1] += curRotationVector_array[i][1];
-		//			expectRotationVector[2] += curRotationVector_array[i][2];
-		//		}
-		//		expectRotationVector = expectRotationVector / (int)curRotationVector_array.size();
-		//		ResizeVector(expectRotationVector, 5 * Δθ < cv::norm(expectRotationVector) ? Δθ : 0);
-		//		
-		//		curRotationVector_array.clear();
-
-		//		qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
-		//		qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
-
-		//	}
-
-		//	newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] / count,expectRotationVector[1] / count,expectRotationVector[2] / count });
-
-		//	//更新这次期望位置与期望姿态
-		//	pose[0] += moveDistance[0];
-		//	pose[1] += moveDistance[1];
-		//	pose[2] += moveDistance[2];
-
-		//	// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		//	vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		//	pose[0] += V * direction_vector[0] * Ts;
-		//	pose[1] += V * direction_vector[1] * Ts;
-		//	pose[2] += V * direction_vector[2] * Ts;
-
-		//	pose[3] = newPose[3];
-		//	pose[4] = newPose[4];
-		//	pose[5] = newPose[5];
-
-		//	//更新下一次的补偿位置加速度
-		//	force = world_2tcp_force(rtde_r->getActualTCPForce(), pose);//转化为TCP坐标下的力
-		//	Fe = force[2];//法向环境力
-
-		//	//获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//	auto temp = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-		//	myFormulaForce = temp.first;
-		//	Base2Formula = temp.second;
-
-		//	φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		//	Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-		//}
-		//rtde_c->servoStop();
-
-
-
-		////我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
-
-		//Fd = -1 * Fd;//因为这里要转换为在TCP坐标系下，所以期望力10N要变成-10N
-
-		//vector<double> normalTCP_move{ 0,0,1 };//表示一个在TCP坐标系下法向的移动增量
-
-		////Xc是输给机器人的指令位置，Xe是期望环境的位置，ddt，dt，分别对应加速度速度
-		//double Xc_ddt = 0;
-		//double Xc_dt = 0;
-		//double Xc = 0;
-		//double Xe_ddt = 0;
-		//double Xe_dt = 0;
-		//double Xe = 0;
-
-		//double φt = 0;
-
-		//int count = 10; //收集多少个Ts周期对应的旋转矢量进行一次合算
-
-		//cv::Vec3d expectRotationVector{ 0,0,0 };//合算出来的期望旋转向量
-
-		//// 每个控制周期的轴角旋转速度 （绕某个固定轴旋转的速度）
-		//double Δθ = 40 * Ts * PI / 180 * count; //最前面的数字是每秒的度数（粗略）
-
-		//cv::Vec3d curRotationVector{ 0,0,0 }; //旋转矢量
-		//double curRotationVector_size = 0;//旋转矢量的大小
-
-		//vector<cv::Vec3d> curRotationVector_array;
-
-		////获取当前位置信息
-		//vector<double> pose = rtde_r->getActualTCPPose();
-
-		////初始化力信息 
-		//vector<double> force = rtde_r->getActualTCPForce();
-		//force = world_2tcp_force(force, pose);
-		////获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//auto [myFormulaForce, Base2Formula] = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-
-		////初始化参数
-		////皮肤平面，则Xe_ddt=0;Xe_dt=0;  以当前TCP位置 建立一个固定坐标系，Xe为原点0  Xe作为Xc的初试点 Xc为在该固定坐标系下的输给机器人指令的位置
-		//Xe_ddt = 0;
-		//Xe_dt = 0;
-		//Xe = 0;
-		//Xc = Xe;
-
-		////初始化期望位置加速度
-		//Xc_ddt = 0;
-
-		////阻抗控制本体
-		//auto temp_Xc = Xc;//上一时刻的Xc
-		//Xc_dt = Xc_dt + Xc_ddt * Ts;
-		//Xc = Xc + Xc_dt * Ts;
-		//normalTCP_move[2] = Xc - temp_Xc;
-		//auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-		//
-		////根据目标向量计算移动角度
-		//if (force[2] > Fd / 2) { // 下降状态且力控尚未稳定,则不转动
-
-		//	curRotationVector = cv::Vec3d{ 0,0,0 };
-		//	curRotationVector_size = 0;
-		//}
-		//else {
-		//	cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-		//	cv::Vec3d _targetVec = calculateSurfaceNormalVector(myFormulaForce, K, R, LengthOfSensor2MassageHeadCentre);
-		//	cv::Mat Formula2Base = Base2Formula.inv();
-		//	cv::Vec3d targetVec = rotateVecToTarget(_targetVec, Formula2Base);//在基座标系下的目标向量表示
-		//	if (cv::norm(targetVec) != 0) {
-		//		curRotationVector = CalculateRotationVector(sixthAxis, targetVec);
-		//		//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
-		//		//ResizeVector(curRotationVector, curRotationVector_size);
-		//	}
-		//	else {
-		//		curRotationVector = cv::Vec3d{0,0,0};
-		//		curRotationVector_size = 0;
-		//	}
-		//}
-		//curRotationVector_array.push_back(curRotationVector);
-
-		//std::vector<double> newPose = pose;
-
-		//if (curRotationVector_array.size() == count) { //收集十组矢量就可以调整姿态了
-		//	
-		//	expectRotationVector = {0,0,0};
-		//	for (int i = 0; i < curRotationVector_array.size(); i++) {
-		//		
-		//		expectRotationVector[0] += curRotationVector_array[i][0];
-		//		expectRotationVector[1] += curRotationVector_array[i][1];
-		//		expectRotationVector[2] += curRotationVector_array[i][2];
-		//	}
-		//	expectRotationVector = expectRotationVector / (int)curRotationVector_array.size();
-		//	ResizeVector(expectRotationVector, 5 * Δθ < cv::norm(expectRotationVector) ? Δθ : 0);
-
-		//	curRotationVector_array.clear();
-
-		//	qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
-		//	qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
-		//}
-
-		//newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] / count,expectRotationVector[1] / count,expectRotationVector[2] / count });
-
-		////期望位置与期望姿态
-		//pose[0] += moveDistance[0];
-		//pose[1] += moveDistance[1];
-		//pose[2] += moveDistance[2];
-
-		//// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		//vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		//pose[0] += V * direction_vector[0] * Ts;
-		//pose[1] += V * direction_vector[1] * Ts;
-		//pose[2] += V * direction_vector[2] * Ts;
-
-		//pose[3] = newPose[3];
-		//pose[4] = newPose[4];
-		//pose[5] = newPose[5];
-
-		////下一次期望加速度 这里Fd与Fe都是在TCP方向上的
-		//force = rtde_r->getActualTCPForce();
-		//force = world_2tcp_force(force, pose);//转化为TCP坐标下的力
-
-		////获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//auto temp = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-		//myFormulaForce = temp.first;
-		//Base2Formula = temp.second;
-
-		//double Fe = force[2];//法向环境力
-		//φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		//Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-		//startFlag = true;//开启！
-
-		//timeb start;
-		//ftime(&start);//获取毫秒,严格控制每个servoL指令之间的间隔为Ts！
-		//while (startFlag)
-		//{
-		//	if (!startFlag)//再三确认，防止其他线程关闭了阻抗控制
-		//		break;
-		//	//qDebug() << "Xc_ddt: " << Xc_ddt;
-		//	//qDebug() << "Xc_dt" << Xc_dt;
-		//	//qDebug() << "Xc" << Xc;
-		//	//qDebug() << "Fe" << world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2];
-
-		//	//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
-		//	//另外下降过程不用考虑姿态
-		//	if (Xc_dt > downLimit && world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2] > Fd / 2)
-		//	{
-		//		qDebug() << " protect";
-		//		auto temp_Xc = Xc;
-		//		Xc += downLimit * Ts; //例如按照0.1m/s 来下降计算，0.002s内走的距离就是0.0002;
-
-		//		normalTCP_move[2] = Xc - temp_Xc;
-		//		auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-
-		//		//期望位置
-		//		pose[0] += moveDistance[0];
-		//		pose[1] += moveDistance[1];
-		//		pose[2] += moveDistance[2];
-
-		//		//严格控制每个servoL指令之间的间隔为Ts！
-		//		timeb end;
-		//		ftime(&end);//获取毫秒
-		//		int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-		//		//qDebug() << "deta_t:" << deta_t << endl;
-		//		if (deta_t < Ts * 1000) {
-		//			Sleep(Ts * 1000 - deta_t);
-		//		}
-		//		Safe_servoL(pose, 0, 0, tForServo, 0.03, 1000);
-		//		ftime(&start);//获取毫秒
-
-		//		continue;
-		//	}
-		//	else
-		//	{
-		//		//严格控制每个servoL指令之间的间隔为Ts！
-		//		timeb end;
-		//		ftime(&end);//获取毫秒
-		//		int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-		//		//qDebug() << "deta_t:" << deta_t << endl;
-		//		if (deta_t < Ts * 1000) {
-		//			Sleep(Ts * 1000 - deta_t);
-		//		}
-		//		Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
-		//		ftime(&start);//获取毫秒
-		//	}
-
-		//	//更新数据
-		//	pose = rtde_r->getActualTCPPose();
-
-		//	//阻抗控制算法本体
-		//	auto temp_Xc = Xc;//上一时刻的Xc
-		//	Xc_dt = Xc_dt + Xc_ddt * Ts;
-		//	Xc = Xc + Xc_dt * Ts;
-		//	normalTCP_move[2] = Xc - temp_Xc;
-		//	auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出要移动的距离
-		//	
-		//	//根据目标向量计算移动角度
-		//	if (force[2] > Fd / 2) { // 下降状态且力控尚未稳定,则不转动
-
-		//		curRotationVector = cv::Vec3d{ 0,0,0 };
-		//		curRotationVector_size = 0;
-		//	}
-		//	else {
-		//		cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-		//		cv::Vec3d _targetVec = calculateSurfaceNormalVector(myFormulaForce, K, R, LengthOfSensor2MassageHeadCentre);
-		//		cv::Mat Formula2Base = Base2Formula.inv();
-		//		cv::Vec3d targetVec = rotateVecToTarget(_targetVec, Formula2Base);//在基座标系下的目标向量表示
-		//		if (cv::norm(targetVec) != 0) {
-		//			curRotationVector = CalculateRotationVector(sixthAxis, targetVec);
-		//			//curRotationVector_size = 5 * Δθ < cv::norm(curRotationVector) ? Δθ : 0;
-		//			//ResizeVector(curRotationVector, curRotationVector_size);
-		//		}
-		//		else {
-		//			curRotationVector = cv::Vec3d{ 0,0,0 };
-		//			curRotationVector_size = 0;
-		//		}
-		//	}
-
-		//	curRotationVector_array.push_back(curRotationVector);
-
-		//	if (curRotationVector_array.size() == count) { //收集十组矢量就可以调整姿态了
-
-		//		expectRotationVector = { 0,0,0 };
-		//		for (int i = 0; i < curRotationVector_array.size(); i++) {
-
-		//			expectRotationVector[0] += curRotationVector_array[i][0];
-		//			expectRotationVector[1] += curRotationVector_array[i][1];
-		//			expectRotationVector[2] += curRotationVector_array[i][2];
-		//		}
-		//		expectRotationVector = expectRotationVector / (int)curRotationVector_array.size();
-		//		ResizeVector(expectRotationVector, 5 * Δθ < cv::norm(expectRotationVector) ? Δθ : 0);
-		//		
-		//		curRotationVector_array.clear();
-
-		//		qDebug() << "expectRotationVector :" << expectRotationVector[0] << expectRotationVector[1] << expectRotationVector[2] << endl;
-		//		qDebug() << "expectRotationVector_size" << RAD_TO_DEG(cv::norm(expectRotationVector)) << endl;
-
-		//	}
-
-		//	newPose = getNewPoseFromCurPoseAndRotateVec(pose, { expectRotationVector[0] / count,expectRotationVector[1] / count,expectRotationVector[2] / count });
-
-		//	//更新这次期望位置与期望姿态
-		//	pose[0] += moveDistance[0];
-		//	pose[1] += moveDistance[1];
-		//	pose[2] += moveDistance[2];
-
-		//	// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		//	vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		//	pose[0] += V * direction_vector[0] * Ts;
-		//	pose[1] += V * direction_vector[1] * Ts;
-		//	pose[2] += V * direction_vector[2] * Ts;
-
-		//	pose[3] = newPose[3];
-		//	pose[4] = newPose[4];
-		//	pose[5] = newPose[5];
-
-		//	//更新下一次的补偿位置加速度
-		//	force = world_2tcp_force(rtde_r->getActualTCPForce(), pose);//转化为TCP坐标下的力
-		//	Fe = force[2];//法向环境力
-
-		//	//获取我的公式下的传感器坐标系的力信息以及 基座标到该坐标系的旋转矩阵
-		//	auto temp = getMyFormulaCDSForceAndBase2Formula(rtde_r);
-		//	myFormulaForce = temp.first;
-		//	Base2Formula = temp.second;
-
-		//	φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		//	Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-		//}
-		//rtde_c->servoStop();
-
-
-
-		/*
-		//我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
-
-		Fd = -1 * Fd;//因为这里要转换为在TCP坐标系下，所以期望力10N要变成-10N
-
-		vector<double> normalTCP_move{ 0,0,1 };//表示一个在TCP坐标系下法向的移动增量
-
-		//Xc是输给机器人的指令位置，Xe是期望环境的位置，ddt，dt，分别对应加速度速度
-		double Xc_ddt = 0;
-		double Xc_dt = 0;
-		double Xc = 0;
-		double Xe_ddt = 0;
-		double Xe_dt = 0;
-		double Xe = 0;
-
-		//对tcp坐标系下 x轴和y轴的调整转角,以初始的TCP坐标的副本的xitaX 和 xitaY为0（即将一开始的TCP坐标系求一个副本，姿态不随时间改变，把该TCP的初始调整转角X和调整转角Y设为0 ）
-		double θx_ddt = 0;
-		double θx_dt = 0;
-		double θx = 0;
-		double θy_ddt = 0;
-		double θy_dt = 0;
-		double θy = 0;
-
-		double φt = 0;
-		double φt_θx = 0; //为角度也提供一个类似位置的阻抗控制一样的控制
-		double φt_θy = 0;
-
-		//获取当前位置信息
-		vector<double> pose = rtde_r->getActualTCPPose();
-
-		//初始化参数
-		//皮肤平面，则Xe_ddt=0;Xe_dt=0;  以当前TCP位置 建立一个固定坐标系，Xe为原点0  Xe作为Xc的初试点 Xc为在该固定坐标系下的输给机器人指令的位置
-		Xe_ddt = 0;
-		Xe_dt = 0;
-		Xe = 0;
-		Xc = Xe;
-		//初始化转角
-		θx_dt = 0;
-		θx = 0;
-		θy_dt = 0;
-		θy = 0;
-
-		//初始化期望位置加速度与姿态加速度
-		Xc_ddt = 0;
-		θy_ddt = 0;
-		θx_ddt = 0;
-
-		//阻抗控制本体
-		auto temp_Xc = Xc;//上一时刻的Xc
-		Xc_dt = Xc_dt + Xc_ddt * Ts;
-		Xc = Xc + Xc_dt * Ts;
-		normalTCP_move[2] = Xc - temp_Xc;
-		auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, {pose[3],pose[4],pose[5]}); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-		θx_dt = θx_dt + θx_ddt * Ts;
-		auto temp_θx = θx;//上一时刻的θx
-		θx = θx + θx_dt * Ts;
-		θy_dt = θy_dt + θy_ddt * Ts;
-		auto temp_θy = θy;//上一时刻的θy
-		θy = θy + θy_dt * Ts;
-		auto newAngle = get_RxRyRz_from_xitaX_and_xitaY(θx - temp_θx, θy - temp_θy);
-
-		//期望位置与期望姿态
-		pose[0] += moveDistance[0];
-		pose[1] += moveDistance[1];
-		pose[2] += moveDistance[2];
-
-		// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		pose[0] += V * direction_vector[0] * Ts;
-		pose[1] += V * direction_vector[1] * Ts;
-		pose[2] += V * direction_vector[2] * Ts;
-
-		pose[3] = newAngle[0];
-		pose[4] = newAngle[1];
-		pose[5] = newAngle[2];
-
-		//下一次期望加速度 这里Fd与Fe都是在TCP方向上的
-		vector<double> force = rtde_r->getActualTCPForce();
-		vector<double> motion_coordinate_force = getMotionCoordinateSystemForce(rtde_r);//获取移动坐标系下的力信息
-
-		force = world_2tcp_force(force, pose);//转化为TCP坐标下的力
-		double Fe = force[2];//法向环境力
-		φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-		double Fe_axisX = force[0];
-		double Fe_axisY = force[1];
-		φt_θx = φt_θx + sigma * (-Fe_axisY) / B_θ;
-		φt_θy = φt_θy + sigma * (Fe_axisX) / B_θ;
-		θx_ddt = 1 / M_θ * (-1 * Fe_axisY - ((B_θ * θx_dt) + (B_θ * φt_θx - sigma * -1 * Fe_axisY)) - K_θ * θx);
-		θy_ddt = 1 / M_θ * (Fe_axisX - ((B_θ * θy_dt) + (B_θ * φt_θy - sigma * Fe_axisX)) - K_θ * θy);
-		
-		startFlag = true;//开启！
-
-		timeb start;
-		ftime(&start);//获取毫秒,严格控制每个servoL指令之间的间隔为Ts！
-		while (startFlag)
-		{
-			if (!startFlag)//再三确认，防止其他线程关闭了阻抗控制
-				break;
-			//qDebug() << "Xc_ddt: " << Xc_ddt;
-			//qDebug() << "Xc_dt" << Xc_dt;
-			//qDebug() << "Xc" << Xc;
-			//qDebug() << "Fe" << world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2];
-			
-			//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
-			//另外下降过程不用考虑姿态
-			if (Xc_dt > downLimit && world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2] > Fd / 2)
-			{
-				qDebug() << " protect";
-				auto temp_Xc = Xc;
-				Xc += downLimit * Ts; //例如按照0.1m/s 来下降计算，0.002s内走的距离就是0.0002;
-
-				normalTCP_move[2] = Xc - temp_Xc;
-				auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-
-				//期望位置
-				pose[0] += moveDistance[0];
-				pose[1] += moveDistance[1];
-				pose[2] += moveDistance[2];
-
-				//严格控制每个servoL指令之间的间隔为Ts！
-				timeb end;
-				ftime(&end);//获取毫秒
-				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-				if (deta_t < Ts * 1000) {
-					Sleep(Ts * 1000 - deta_t);
-				}
-				Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
-				ftime(&start);//获取毫秒
-
-				continue;
-			}
-			else
-			{
-				//严格控制每个servoL指令之间的间隔为Ts！
-				timeb end;
-				ftime(&end);//获取毫秒
-				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-				if (deta_t < Ts * 1000) {
-					Sleep(Ts * 1000 - deta_t);
-				}
-				Safe_servoL(pose, 0, 0, tForServo, 0.1, 300);
-				ftime(&start);//获取毫秒
-			}
-
-			//更新数据
-			pose = rtde_r->getActualTCPPose();
-
-			//阻抗控制算法本体
-			auto temp_Xc = Xc;//上一时刻的Xc
-			Xc_dt = Xc_dt + Xc_ddt * Ts;
-			Xc = Xc + Xc_dt * Ts;
-			normalTCP_move[2] = Xc - temp_Xc;
-			auto moveDistance = tran_P_from_tcp_2world(normalTCP_move, { pose[3],pose[4],pose[5] }); //根据阻抗控制得出要移动的距离
-			θx_dt = θx_dt + θx_ddt * Ts;
-			auto temp_θx = θx;//上一时刻的θx
-			θx = θx + θx_dt * Ts;
-			θy_dt = θy_dt + θy_ddt * Ts;
-			auto temp_θy = θy;//上一时刻的θy
-			θy = θy + θy_dt * Ts;
-			auto newAngle = get_RxRyRz_from_xitaX_and_xitaY(θx - temp_θx, θy - temp_θy);
-
-			//更新这次期望位置与期望姿态
-			pose[0] += moveDistance[0]; 
-			pose[1] += moveDistance[1];
-			pose[2] += moveDistance[2];
-
-			// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-			vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-			pose[0] += V * direction_vector[0] * Ts;
-			pose[1] += V * direction_vector[1] * Ts;
-			pose[2] += V * direction_vector[2] * Ts;
-
-			pose[3] = newAngle[0];
-			pose[4] = newAngle[1];
-			pose[5] = newAngle[2];
-
-			//更新下一次的补偿位置加速度
-			force = world_2tcp_force(rtde_r->getActualTCPForce(), pose);//转化为TCP坐标下的力
-			Fe = force[2];//法向环境力
-			φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-			Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-			Fe_axisX = force[0];
-			Fe_axisY = force[1];
-			φt_θx = φt_θx + sigma * (-Fe_axisY) / B_θ;
-			φt_θy = φt_θy + sigma * (Fe_axisX) / B_θ;
-			θx_ddt = 1 / M_θ * (-1 * Fe_axisY - ((B_θ * θx_dt) + (B_θ * φt_θx - sigma * -1 * Fe_axisY)) - K_θ * θx);
-			θy_ddt = 1 / M_θ * (Fe_axisX - ((B_θ * θy_dt) + (B_θ * φt_θy - sigma * Fe_axisX)) - K_θ * θy);
-			qDebug() << "  θx_ddt :" << θx_ddt<< "  θx_dt :" << θx_dt << "  θx :" << θx << "  Fe_axisY :" << Fe_axisY <<"  θx - temp_θx" << θx - temp_θx;
-			qDebug() << "  θy_ddt :" << θy_ddt << "  θy_dt :" << θy_dt << "  θy :" << θy << "  Fe_axisX :" << Fe_axisX << "  θy - temp_θy" << θy - temp_θy;
-
-		}
-		rtde_c->servoStop();
-		*/
-	}
-	else if (mode == 2) {
-		
-		// 获取补偿向量专用 
-
-		//我的离散阻抗思路是：开启阻抗控制器，开启的前一时刻Xc_ddt = 0，然后根据Xc_ddt更新 Xc_dt与Xc，然后再更新下一次Xc_ddt，然后伺服移动当前次的Xc
-
-		vector<double> normalMotion_move{ 0,0,1 };//表示一个在移动坐标系下法向的移动增量
-
-		//Xc是输给机器人的指令位置，Xe是期望环境的位置，ddt，dt，分别对应加速度速度
-		double Xc_ddt = 0;
-		double Xc_dt = 0;
-		double Xc = 0;
-		double Xe_ddt = 0;
-		double Xe_dt = 0;
-		double Xe = 0;
-
-		double φt = 0;
-
-		int count = 50; //收集多少个Ts周期对应的法向量进行一次合算
-
-		vector<cv::Vec3d> vCompensation_array;
-
-		vector<double> pose = rtde_r->getActualTCPPose();
-
-		//-------------------获取移动坐标系下的力------------------------
-
-		vector<double> cur_pose = rtde_r->getActualTCPPose();
-
-		auto sixth_axis = getSixthAxisFromBasePose(cur_pose);
-
-		Vec3d end_effector_direction{ _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
-
-		auto force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
-
-		//------------------------------------------------------------
-
-		//----------------计算基座标系到移动坐标系的旋转矩阵----------------
-
-		Vec3d x_axis, y_axis, z_axis;
-
-		computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
-
-		cv::Mat RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
-
-		cv::Mat RotMatMotion2Base = RotMatBase2Motion.t();
-
-		cv::Vec3d RotVecBase2Motion;
-
-		cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
-
-		//------------------------------------------------------------
-
-		//初始化参数
-		//皮肤平面，则Xe_ddt=0;Xe_dt=0;  以当前移动坐标系位置 建立一个固定坐标系，Xe为原点0  Xe作为Xc的初试点 Xc为在该固定坐标系下的输给机器人指令的位置
-		Xe_ddt = 0;
-		Xe_dt = 0;
-		Xe = 0;
-		Xc = Xe;
-
-		//初始化期望位置加速度
-		Xc_ddt = 0;
-
-		//阻抗控制本体
-		auto temp_Xc = Xc;//上一时刻的Xc
-		Xc_dt = Xc_dt + Xc_ddt * Ts;
-		Xc = Xc + Xc_dt * Ts;
-		normalMotion_move[2] = Xc - temp_Xc;
-		cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出在TCP坐标下要移动的距离，并将该距离增量转化为世界坐标系下
-
-		//根据目标向量计算移动角度
-		if (force[2] >= Fd / 2) { // 下降状态且力控尚未稳定,则不计算补偿法向量
-
-			cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-			cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
-			vCompensation_array.push_back(_targetVec);
-
-		}
-
-		if (vCompensation_array.size() == count) { // 收集50个补偿法向量就求个平均
-
-			hasCompensation = true;
-
-			cv::Vec3d sum(0.0, 0.0, 0.0);
-
-			for (const auto& vec : vCompensation_array)
-				sum += vec;
-
-			vCompensation = sum / static_cast<double>(vCompensation_array.size());
-
-			vCompensation_array.clear();
-
-			cv::Vec3d vCompensation_in_base = rotateVecToTarget(vCompensation, RotMatMotion2Base);
-
-			qDebug() << "vCompensation :" << vCompensation[0] << vCompensation[1] << vCompensation[2] << endl;
-			qDebug() << "vCompensation_size : " << RAD_TO_DEG(cv::norm(vCompensation)) << endl;
-
-			qDebug() << "vCompensation_in_base :" << vCompensation_in_base[0] << vCompensation_in_base[1] << vCompensation_in_base[2] << endl;
-			qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
-
-		}
-
-		//期望位置
-		pose[0] += moveDistance[0];
-		pose[1] += moveDistance[1];
-		pose[2] += moveDistance[2];
-
-		// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-		vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-		pose[0] += V * direction_vector[0] * Ts;
-		pose[1] += V * direction_vector[1] * Ts;
-		pose[2] += V * direction_vector[2] * Ts;
-
-
-		//-------------------获取移动坐标系下的力------------------------
-
-		cur_pose = rtde_r->getActualTCPPose();
-
-		sixth_axis = getSixthAxisFromBasePose(cur_pose);
-
-		end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
-
-		force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
-
-		//-----------------------------------------------------------
-
-
-		//----------------计算基座标系到移动坐标系的旋转矩阵----------------
-
-		computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
-
-		RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
-
-		RotMatMotion2Base = RotMatBase2Motion.t();
-
-		cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
-
-		//-------------------------------------------------------------
-
-		//段论文方法
-		double Fe = force[2];//法向环境力
-		φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-		Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
-
-
-		startFlag = true;//开启！
-
-		timeb start;
-		ftime(&start);//获取毫秒,严格控制每个servoL指令之间的间隔为Ts！
-		while (startFlag)
-		{
-			if (!startFlag)//再三确认，防止其他线程关闭了阻抗控制
-				break;
-			//qDebug() << "Xc_ddt: " << Xc_ddt;
-			//qDebug() << "Xc_dt" << Xc_dt;
-			//qDebug() << "Xc" << Xc;
-			//qDebug() << "Fe" << world_2tcp_force(rtde_r->getActualTCPForce(), pose)[2];
-
-			//防止阻抗控制在下降过程不断累计Xc_dt 导致最后力控超调量过高，这里添加一个阈值如0.1m/s ，一旦速度超过0.1m/s 则以固定速度0.1m/s来更新位置，并不再更新Xc_ddt与Xc_dt，直到接触为止（给了0.2N的接触阈值）
-			//另外下降过程不用考虑姿态
-			if (Xc_dt < -downLimit && getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false)[2] < Fd / 2)
-			{
-				qDebug() << " protect";
-				auto temp_Xc = Xc;
-				Xc -= downLimit * Ts; //例如按照0.1m/s 来下降计算，0.002s内走的距离就是0.0002;
-
-				normalMotion_move[2] = Xc - temp_Xc;
-				cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出在移动坐标系下要移动的距离，并将该距离增量转化为世界坐标系下
-
-				//期望位置
-				pose[0] += moveDistance[0];
-				pose[1] += moveDistance[1];
-				pose[2] += moveDistance[2];
-
-				//严格控制每个servoL指令之间的间隔为Ts！
-				timeb end;
-				ftime(&end);//获取毫秒
-				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-				//qDebug() << "deta_t:" << deta_t << endl;
-				if (deta_t < Ts * 1000) {
-					Sleep(Ts * 1000 - deta_t);
-				}
-				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
-				ftime(&start);//获取毫秒
-
-				continue;
-			}
-			else
-			{
-				//严格控制每个servoL指令之间的间隔为Ts！
-				timeb end;
-				ftime(&end);//获取毫秒
-				int deta_t = (end.time * 1000 + end.millitm) - (start.time * 1000 + start.millitm);
-				//qDebug() << "deta_t:" << deta_t << endl;
-				if (deta_t < Ts * 1000) {
-					Sleep(Ts * 1000 - deta_t);
-				}
-				Safe_servoL(pose, 0, 0, tForServo, 0.03, 300);
-				ftime(&start);//获取毫秒
-			}
-
-			//更新数据
-			pose = rtde_r->getActualTCPPose();
-
-			//阻抗控制算法本体
-			auto temp_Xc = Xc;//上一时刻的Xc
-			Xc_dt = Xc_dt + Xc_ddt * Ts;
-			Xc = Xc + Xc_dt * Ts;
-			normalMotion_move[2] = Xc - temp_Xc;
-			cv::Vec3d moveDistance = rotateVecToTarget({ normalMotion_move[0],normalMotion_move[1],normalMotion_move[2] }, RotMatMotion2Base); //根据阻抗控制得出要移动的距离
-
-			//qDebug() << "Force :" << force[2] << endl;
-			//qDebug() << "moveDistance :" << moveDistance[0] << moveDistance[1] << moveDistance[2] << endl;
-			//qDebug() << "Xc :" << Xc << " Xc_dt:" << Xc_dt << " Xc_ddt:" << Xc_ddt << endl;
-		
-			if (force[2] >= Fd / 2) { // 下降状态且力控尚未稳定,则不计算补偿法向量
-
-				cv::Vec3d sixthAxis = getSixthAxisFromBasePose(rtde_r->getActualTCPPose());
-				cv::Vec3d _targetVec = calculateSurfaceNormalVector(force, R, LengthOfSensor2MassageHeadCentre); //目标向量在移动坐标系下的表示
-				vCompensation_array.push_back(_targetVec);
-			}
-
-			if (vCompensation_array.size() == count) { // 收集50个补偿法向量就求个平均
-
-				hasCompensation = true;
-
-				cv::Vec3d sum(0.0, 0.0, 0.0);
-
-				for (const auto& vec : vCompensation_array)
-					sum += vec;
-
-				vCompensation = sum / static_cast<double>(vCompensation_array.size());
-
-				vCompensation_array.clear();
-
-				cv::Vec3d vCompensation_in_base = rotateVecToTarget(vCompensation, RotMatMotion2Base);
-
-				qDebug() << "vCompensation :" << vCompensation[0] << vCompensation[1] << vCompensation[2] << endl;
-				qDebug() << "vCompensation_size : " << RAD_TO_DEG(cv::norm(vCompensation)) << endl;
-
-				qDebug() << "vCompensation_in_base :" << vCompensation_in_base[0] << vCompensation_in_base[1] << vCompensation_in_base[2] << endl;
-				qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
-			}
-
-			//qDebug() << "vCompensation_in_base_size : " << RAD_TO_DEG(cv::norm(vCompensation_in_base)) << endl;
-
-			//更新这次期望位置
-			pose[0] += moveDistance[0];
-			pose[1] += moveDistance[1];
-			pose[2] += moveDistance[2];
-
-			// 根据控制周期计算出移动方向应该移动的距离，事实上并不太准确，机器人的位置闭环不能在固定时间内到达指定位置，还是有误
-			vector<double> direction_vector = get_direction_vector_from_moveUnitDirInWorld_and_rxryrz(_moveUnitDirInWorld, { pose[3],pose[4],pose[5] });
-			pose[0] += V * direction_vector[0] * Ts;
-			pose[1] += V * direction_vector[1] * Ts;
-			pose[2] += V * direction_vector[2] * Ts;
-
-			//-------------------获取移动坐标系下的力------------------------
-
-			auto cur_pose = rtde_r->getActualTCPPose();
-
-			sixth_axis = getSixthAxisFromBasePose(cur_pose);
-
-			end_effector_direction = { _moveUnitDirInWorld[0],_moveUnitDirInWorld[1],_moveUnitDirInWorld[2] };
-
-			force = getMotionCoordinateSystemForce(sixth_axis, end_effector_direction, { 0,0,1 }, rtde_r, false, false);
-
-			//-----------------------------------------------------------
-
-
-			//----------------------------计算基座标系到移动坐标系的旋转矩阵----------------------------
-
-			computeMotionCoordinateSystem(sixth_axis, end_effector_direction, { 0,0,1 }, x_axis, y_axis, z_axis, rtde_r);
-
-			RotMatBase2Motion = getRotationMatrixFromBase(x_axis, y_axis, z_axis);
-
-			RotMatMotion2Base = RotMatBase2Motion.t();
-
-			cv::Rodrigues(RotMatBase2Motion, RotVecBase2Motion);
-
-			//-------------------------------------------------------------------------------------
-			
-			//段论文的方法
-			Fe = force[2];//法向环境力
-			φt = φt + sigma * (Fd - Fe) / B;//自适应控制B 变阻尼
-			Xc_ddt = Xe_ddt + 1 / M * (Fe - Fd - (B * (Xc_dt - Xe_dt) + (B * φt + sigma * (Fd - Fe))) - K * (Xc - Xe));
 
 		}
 		rtde_c->servoStop();
