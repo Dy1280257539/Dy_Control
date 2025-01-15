@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'KinectControlleriUjuzF.ui'
+** Form generated from reading UI file 'KinectControlleriHnUTB.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef KINECTCONTROLLERIUJUZF_H
-#define KINECTCONTROLLERIUJUZF_H
+#ifndef KINECTCONTROLLERIHNUTB_H
+#define KINECTCONTROLLERIHNUTB_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -17,6 +17,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
@@ -72,6 +73,19 @@ public:
     QLabel *Kinect_color_image;
     QLabel *Kinect_depth_image;
     MyQOpenglWidget *pointcloud_widget;
+    QWidget *layoutWidget2;
+    QVBoxLayout *verticalLayout_5;
+    QHBoxLayout *horizontalLayout_2;
+    QLabel *label_16;
+    QSpacerItem *horizontalSpacer;
+    QLabel *label_15;
+    QLineEdit *cur_data_num_lineEdit;
+    QHBoxLayout *horizontalLayout_3;
+    QPushButton *get_frame_and_pose_Button;
+    QPushButton *save_all_data_Button;
+    QPushButton *clear_all_data_Button;
+    QLabel *label_17;
+    QLineEdit *save_caldata_filename_lineEdit;
     QStatusBar *statusBar;
 
     void setupUi(QMainWindow *KinectControllerClass)
@@ -149,7 +163,7 @@ public:
 
         layoutWidget = new QWidget(centralWidget);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(20, 90, 525, 556));
+        layoutWidget->setGeometry(QRect(20, 160, 525, 556));
         verticalLayout_3 = new QVBoxLayout(layoutWidget);
         verticalLayout_3->setSpacing(6);
         verticalLayout_3->setContentsMargins(11, 11, 11, 11);
@@ -348,6 +362,77 @@ public:
 
         verticalLayout_3->addLayout(verticalLayout);
 
+        layoutWidget2 = new QWidget(centralWidget);
+        layoutWidget2->setObjectName(QString::fromUtf8("layoutWidget2"));
+        layoutWidget2->setGeometry(QRect(20, 90, 521, 65));
+        verticalLayout_5 = new QVBoxLayout(layoutWidget2);
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_5->setObjectName(QString::fromUtf8("verticalLayout_5"));
+        verticalLayout_5->setContentsMargins(0, 0, 0, 0);
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setSpacing(6);
+        horizontalLayout_2->setObjectName(QString::fromUtf8("horizontalLayout_2"));
+        label_16 = new QLabel(layoutWidget2);
+        label_16->setObjectName(QString::fromUtf8("label_16"));
+
+        horizontalLayout_2->addWidget(label_16);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer);
+
+        label_15 = new QLabel(layoutWidget2);
+        label_15->setObjectName(QString::fromUtf8("label_15"));
+
+        horizontalLayout_2->addWidget(label_15);
+
+        cur_data_num_lineEdit = new QLineEdit(layoutWidget2);
+        cur_data_num_lineEdit->setObjectName(QString::fromUtf8("cur_data_num_lineEdit"));
+
+        horizontalLayout_2->addWidget(cur_data_num_lineEdit);
+
+        horizontalLayout_2->setStretch(0, 1);
+        horizontalLayout_2->setStretch(1, 1);
+        horizontalLayout_2->setStretch(2, 1);
+        horizontalLayout_2->setStretch(3, 1);
+
+        verticalLayout_5->addLayout(horizontalLayout_2);
+
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setSpacing(6);
+        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
+        get_frame_and_pose_Button = new QPushButton(layoutWidget2);
+        get_frame_and_pose_Button->setObjectName(QString::fromUtf8("get_frame_and_pose_Button"));
+        get_frame_and_pose_Button->setCheckable(false);
+
+        horizontalLayout_3->addWidget(get_frame_and_pose_Button);
+
+        save_all_data_Button = new QPushButton(layoutWidget2);
+        save_all_data_Button->setObjectName(QString::fromUtf8("save_all_data_Button"));
+        save_all_data_Button->setCheckable(false);
+
+        horizontalLayout_3->addWidget(save_all_data_Button);
+
+        clear_all_data_Button = new QPushButton(layoutWidget2);
+        clear_all_data_Button->setObjectName(QString::fromUtf8("clear_all_data_Button"));
+        clear_all_data_Button->setCheckable(false);
+
+        horizontalLayout_3->addWidget(clear_all_data_Button);
+
+        label_17 = new QLabel(layoutWidget2);
+        label_17->setObjectName(QString::fromUtf8("label_17"));
+
+        horizontalLayout_3->addWidget(label_17);
+
+        save_caldata_filename_lineEdit = new QLineEdit(layoutWidget2);
+        save_caldata_filename_lineEdit->setObjectName(QString::fromUtf8("save_caldata_filename_lineEdit"));
+
+        horizontalLayout_3->addWidget(save_caldata_filename_lineEdit);
+
+
+        verticalLayout_5->addLayout(horizontalLayout_3);
+
         KinectControllerClass->setCentralWidget(centralWidget);
         statusBar = new QStatusBar(KinectControllerClass);
         statusBar->setObjectName(QString::fromUtf8("statusBar"));
@@ -382,6 +467,14 @@ public:
         DK_maxZ_lineEdit->setText(QApplication::translate("KinectControllerClass", "0.2", nullptr));
         Kinect_color_image->setText(QApplication::translate("KinectControllerClass", "\345\275\251\350\211\262\345\233\276\345\203\217\345\214\272\345\237\237", nullptr));
         Kinect_depth_image->setText(QApplication::translate("KinectControllerClass", "\346\267\261\345\272\246\345\233\276\345\203\217\345\214\272\345\237\237", nullptr));
+        label_16->setText(QApplication::translate("KinectControllerClass", "\346\211\213\347\234\274\346\240\207\345\256\232(\344\270\200\345\270\247\346\225\260\346\215\256\345\220\253\345\233\276\345\203\217\345\222\214\345\247\277\346\200\201)\357\274\232", nullptr));
+        label_15->setText(QApplication::translate("KinectControllerClass", "\345\275\223\345\211\215\346\225\260\346\215\256\346\225\260\357\274\232", nullptr));
+        cur_data_num_lineEdit->setText(QApplication::translate("KinectControllerClass", "0", nullptr));
+        get_frame_and_pose_Button->setText(QApplication::translate("KinectControllerClass", "\350\216\267\345\217\226\345\275\223\345\211\215\346\225\260\346\215\256", nullptr));
+        save_all_data_Button->setText(QApplication::translate("KinectControllerClass", "\344\277\235\345\255\230\346\211\200\346\234\211\346\225\260\346\215\256", nullptr));
+        clear_all_data_Button->setText(QApplication::translate("KinectControllerClass", "\346\270\205\347\251\272\346\211\200\346\234\211\346\225\260\346\215\256", nullptr));
+        label_17->setText(QApplication::translate("KinectControllerClass", "\344\277\235\345\255\230\345\234\260\345\235\200\357\274\232", nullptr));
+        save_caldata_filename_lineEdit->setText(QApplication::translate("KinectControllerClass", "F:\\DESKAPPPLACE\\DOCUMENT\\rtde\\Dy_Control\\calibrationDataSaveDir", nullptr));
     } // retranslateUi
 
 };
@@ -392,4 +485,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // KINECTCONTROLLERIUJUZF_H
+#endif // KINECTCONTROLLERIHNUTB_H

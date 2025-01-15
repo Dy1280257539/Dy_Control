@@ -1061,7 +1061,7 @@ void Dy_Control::PC_Button_function() {
 void Dy_Control::on_KinectController_clicked() {
     if (!open_KinectController_Flag) {
         open_KinectController_Flag = true;
-        kinectController = new KinectController(&open_KinectController_Flag);
+        kinectController = new KinectController(&open_KinectController_Flag,&r_connectFlag,&rtde_r);
         kinectController->show();
     }
     else {

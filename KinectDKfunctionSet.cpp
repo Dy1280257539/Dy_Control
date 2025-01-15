@@ -39,3 +39,45 @@ QImage capture_to_qimage_depth(const k4a::capture& capture) {
 
     return qimage;
 }
+
+
+
+void saveColorImages(const std::vector<k4a::capture>& photos, const std::string& savePath) {
+    int frameIndex = 1; // 从 1 开始命名
+
+    // 确保路径分隔符的处理
+    std::string correctedPath = savePath;
+    if (!correctedPath.empty() && correctedPath.back() != '/' && correctedPath.back() != '\\') {
+        correctedPath += '/'; // 自动补充分隔符
+    }
+
+    // 遍历每一帧的捕获数据
+    for (const auto& capture : photos) {
+        // 从捕获数据中获取彩色图像
+        k4a::image colorImage = capture.get_color_image();
+        if (!colorImage) {
+            std::cerr << "Failed to get color image for frame " << frameIndex << std::endl;
+            continue; // 跳过当前帧
+        }
+
+        // 获取图像宽度、高度和像素数据
+        int width = colorImage.get_width_pixels();
+        int height = colorImage.get_height_pixels();
+        uint8_t* colorData = colorImage.get_buffer();
+
+        // 使用 OpenCV 将彩色图像数据转换为 Mat 格式（BGRA -> BGR）
+        cv::Mat colorMat(height, width, CV_8UC4, colorData); // BGRA 格式
+        cv::Mat bgrMat;
+        cv::cvtColor(colorMat, bgrMat, cv::COLOR_BGRA2BGR); // 转换为 BGR 格式
+
+        // 构造保存文件的完整路径（以数字命名）
+        std::string filename = correctedPath + std::to_string(frameIndex) + ".bmp";
+
+        // 保存图像为 BMP 文件
+        if (!cv::imwrite(filename, bgrMat)) {
+            std::cerr << "Failed to save image: " << filename << std::endl;
+        }
+
+        frameIndex++; // 处理下一帧
+    }
+}

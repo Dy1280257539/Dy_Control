@@ -1,7 +1,7 @@
 #include "KinectController.h"
 
-KinectController::KinectController(bool* openFlagAddress,QWidget *parent):
-    openFlagAddress(openFlagAddress),QMainWindow(parent)
+KinectController::KinectController(bool* openFlagAddress, bool* r_connectFlagAddress, RTDEReceiveInterface** rtde_r_Address,QWidget *parent):
+    openFlagAddress(openFlagAddress), r_connectFlagAddress(r_connectFlagAddress), rtde_r_Address(rtde_r_Address),QMainWindow(parent)
 {
 	ui.setupUi(this);
 
@@ -109,6 +109,63 @@ void KinectController::on_save_cur_pointcloud_clicked() {
         cloud->points[i].z = curPointCloud[i].z();
     }
     pcl::io::savePCDFileASCII(ui.save_filename_lineEdit->text().toStdString(), *cloud);
+}
+
+void KinectController::on_get_frame_and_pose_Button_clicked() {
+    
+    if(!r_connectFlagAddress || *r_connectFlagAddress == false)
+        QMessageBox::warning(NULL, QStringLiteral("DK相机控制台提示"), QStringLiteral("未连接到机器人"), QMessageBox::Yes, QMessageBox::Yes);
+    else if(!open_Kinect_Flag)
+        QMessageBox::warning(NULL, QStringLiteral("DK相机控制台提示"), QStringLiteral("未开启DK相机"), QMessageBox::Yes, QMessageBox::Yes);
+    else {
+        //组装机器人姿态的数据
+        
+        std::vector<double> pose;
+
+        auto tmp = (*rtde_r_Address)->getActualTCPPose();
+
+        tmp = pose_inv(tmp);
+
+        pose.push_back(cur_data_num + 1);
+        pose.push_back(tmp[3]);
+        pose.push_back(tmp[4]);
+        pose.push_back(tmp[5]);
+        pose.push_back(tmp[0]);
+        pose.push_back(tmp[1]);
+        pose.push_back(tmp[2]);
+
+        poses.push_back(pose);
+        photos.push_back(kinect->capture_frame());
+        cur_data_num++;
+        ui.cur_data_num_lineEdit->setText(QString::number(cur_data_num));
+    }
+}
+
+void KinectController::on_save_all_data_Button_clicked() {
+
+    QString path = ui.save_caldata_filename_lineEdit->text();
+
+    saveColorImages(photos, path.toStdString());
+
+    std::string correctedPath = path.toStdString();
+    if (!correctedPath.empty() && correctedPath.back() != '/' && correctedPath.back() != '\\') {
+        correctedPath += '/'; // 自动补充分隔符
+    }
+
+    correctedPath += "gripper2base.csv";
+
+    saveToCsv(poses, correctedPath);
+
+    on_clear_all_data_Button_clicked();
+}
+
+
+void KinectController::on_clear_all_data_Button_clicked() {
+
+    cur_data_num = 0;
+    poses.clear();
+    photos.clear();
+    ui.cur_data_num_lineEdit->setText(QString::number(cur_data_num));
 }
 
 
