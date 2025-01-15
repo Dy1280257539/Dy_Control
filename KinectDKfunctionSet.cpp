@@ -1,5 +1,7 @@
 #include "KinectDKfunctionSet.h"
 
+static std::vector<double> base2cam = {0.0,0.0,0.0,0.0,0.0,0.0};
+
 QImage capture_to_qimage_color(const k4a::capture& capture) {
 
     auto color_image = capture.get_color_image();
@@ -80,4 +82,33 @@ void saveColorImages(const std::vector<k4a::capture>& photos, const std::string&
 
         frameIndex++; // 处理下一帧
     }
+}
+
+
+std::vector<double> getBase2Cam() {
+    // 返回当前的 base2cam 值
+    return base2cam;
+}
+
+
+void updateBase2Cam(const cv::Mat& transformMatrix) {
+    // 检查输入矩阵是否是 4x4
+    if (transformMatrix.rows != 4 || transformMatrix.cols != 4) {
+        throw std::invalid_argument("Input transformMatrix must be a 4x4 matrix.");
+    }
+
+    // 提取平移向量 (x, y, z)
+    double x = transformMatrix.at<double>(0, 3);
+    double y = transformMatrix.at<double>(1, 3);
+    double z = transformMatrix.at<double>(2, 3);
+
+    // 提取旋转矩阵 (3x3)
+    cv::Mat rotationMatrix = transformMatrix(cv::Range(0, 3), cv::Range(0, 3));
+
+    // 将旋转矩阵转换为 Rodrigues 旋转向量 (rx, ry, rz)
+    cv::Mat rotationVector;
+    cv::Rodrigues(rotationMatrix, rotationVector);
+
+    // 更新 base2cam 的值
+    base2cam = { x, y, z, rotationVector.at<double>(0), rotationVector.at<double>(1), rotationVector.at<double>(2) };
 }

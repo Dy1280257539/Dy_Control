@@ -34,12 +34,12 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>msvc2017_64</QtInstall>
-    <QtModules>core;gui;widgets;charts;charts</QtModules>
+    <QtModules>core;gui;widgets;charts</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>msvc2017_64</QtInstall>
-    <QtModules>core;gui;widgets;charts;</QtModules>
+    <QtModules>core;gui;widgets;charts</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -132,6 +132,7 @@
     <ClCompile Include="endoscopeThread.cpp" />
     <ClCompile Include="forceSenseController.cpp" />
     <ClCompile Include="functionSet.cpp" />
+    <ClCompile Include="getBase2CamController.cpp" />
     <ClCompile Include="KeyEventLabel.cpp" />
     <ClCompile Include="KinectController.cpp" />
     <ClCompile Include="KinectDK.cpp">
@@ -161,12 +162,14 @@
     <ClCompile Include="Impedance_control.cpp" />
     <ClCompile Include="main.cpp" />
     <QtUic Include="forceSenseController.ui" />
+    <QtUic Include="getBase2CamController.ui" />
     <QtUic Include="KinectController.ui" />
     <QtUic Include="RealSenseController.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bpnetwork.h" />
     <QtMoc Include="forceSenseController.h" />
+    <QtMoc Include="getBase2CamController.h" />
     <ClInclude Include="KinectDKfunctionSet.h" />
     <ClInclude Include="myScience.h" />
     <ClInclude Include="pcfunctionSet.h" />

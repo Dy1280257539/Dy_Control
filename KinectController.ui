@@ -358,16 +358,23 @@ border:2px groove gray;</string>
       <x>20</x>
       <y>90</y>
       <width>521</width>
-      <height>65</height>
+      <height>69</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1,1,1">
+      <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,1,1,1">
        <item>
         <widget class="QLabel" name="label_16">
          <property name="text">
           <string>手眼标定(一帧数据含图像和姿态)：</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="getBase2Cam_Button">
+         <property name="text">
+          <string>输入Base2Cam</string>
          </property>
         </widget>
        </item>

@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'KinectControlleriHnUTB.ui'
+** Form generated from reading UI file 'KinectControllerhHlRKs.ui'
 **
 ** Created by: Qt User Interface Compiler version 5.12.9
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef KINECTCONTROLLERIHNUTB_H
-#define KINECTCONTROLLERIHNUTB_H
+#ifndef KINECTCONTROLLERHHLRKS_H
+#define KINECTCONTROLLERHHLRKS_H
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
@@ -77,6 +77,7 @@ public:
     QVBoxLayout *verticalLayout_5;
     QHBoxLayout *horizontalLayout_2;
     QLabel *label_16;
+    QPushButton *getBase2Cam_Button;
     QSpacerItem *horizontalSpacer;
     QLabel *label_15;
     QLineEdit *cur_data_num_lineEdit;
@@ -364,7 +365,7 @@ public:
 
         layoutWidget2 = new QWidget(centralWidget);
         layoutWidget2->setObjectName(QString::fromUtf8("layoutWidget2"));
-        layoutWidget2->setGeometry(QRect(20, 90, 521, 65));
+        layoutWidget2->setGeometry(QRect(20, 90, 521, 69));
         verticalLayout_5 = new QVBoxLayout(layoutWidget2);
         verticalLayout_5->setSpacing(6);
         verticalLayout_5->setContentsMargins(11, 11, 11, 11);
@@ -377,6 +378,11 @@ public:
         label_16->setObjectName(QString::fromUtf8("label_16"));
 
         horizontalLayout_2->addWidget(label_16);
+
+        getBase2Cam_Button = new QPushButton(layoutWidget2);
+        getBase2Cam_Button->setObjectName(QString::fromUtf8("getBase2Cam_Button"));
+
+        horizontalLayout_2->addWidget(getBase2Cam_Button);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
@@ -393,9 +399,9 @@ public:
         horizontalLayout_2->addWidget(cur_data_num_lineEdit);
 
         horizontalLayout_2->setStretch(0, 1);
-        horizontalLayout_2->setStretch(1, 1);
         horizontalLayout_2->setStretch(2, 1);
         horizontalLayout_2->setStretch(3, 1);
+        horizontalLayout_2->setStretch(4, 1);
 
         verticalLayout_5->addLayout(horizontalLayout_2);
 
@@ -468,13 +474,14 @@ public:
         Kinect_color_image->setText(QApplication::translate("KinectControllerClass", "\345\275\251\350\211\262\345\233\276\345\203\217\345\214\272\345\237\237", nullptr));
         Kinect_depth_image->setText(QApplication::translate("KinectControllerClass", "\346\267\261\345\272\246\345\233\276\345\203\217\345\214\272\345\237\237", nullptr));
         label_16->setText(QApplication::translate("KinectControllerClass", "\346\211\213\347\234\274\346\240\207\345\256\232(\344\270\200\345\270\247\346\225\260\346\215\256\345\220\253\345\233\276\345\203\217\345\222\214\345\247\277\346\200\201)\357\274\232", nullptr));
+        getBase2Cam_Button->setText(QApplication::translate("KinectControllerClass", "\350\276\223\345\205\245Base2Cam", nullptr));
         label_15->setText(QApplication::translate("KinectControllerClass", "\345\275\223\345\211\215\346\225\260\346\215\256\346\225\260\357\274\232", nullptr));
         cur_data_num_lineEdit->setText(QApplication::translate("KinectControllerClass", "0", nullptr));
         get_frame_and_pose_Button->setText(QApplication::translate("KinectControllerClass", "\350\216\267\345\217\226\345\275\223\345\211\215\346\225\260\346\215\256", nullptr));
         save_all_data_Button->setText(QApplication::translate("KinectControllerClass", "\344\277\235\345\255\230\346\211\200\346\234\211\346\225\260\346\215\256", nullptr));
         clear_all_data_Button->setText(QApplication::translate("KinectControllerClass", "\346\270\205\347\251\272\346\211\200\346\234\211\346\225\260\346\215\256", nullptr));
         label_17->setText(QApplication::translate("KinectControllerClass", "\344\277\235\345\255\230\345\234\260\345\235\200\357\274\232", nullptr));
-        save_caldata_filename_lineEdit->setText(QApplication::translate("KinectControllerClass", "F:\\DESKAPPPLACE\\DOCUMENT\\rtde\\Dy_Control\\calibrationDataSaveDir", nullptr));
+        save_caldata_filename_lineEdit->setText(QApplication::translate("KinectControllerClass", "F:/DESKAPPPLACE/DOCUMENT/rtde/Dy_Control/calibrationDataSaveDir", nullptr));
     } // retranslateUi
 
 };
@@ -485,4 +492,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // KINECTCONTROLLERIHNUTB_H
+#endif // KINECTCONTROLLERHHLRKS_H

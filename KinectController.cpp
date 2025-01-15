@@ -168,6 +168,19 @@ void KinectController::on_clear_all_data_Button_clicked() {
     ui.cur_data_num_lineEdit->setText(QString::number(cur_data_num));
 }
 
+void KinectController::on_getBase2Cam_Button_clicked(){
+
+    if (!isOpenBase2CamController) {
+        isOpenBase2CamController = true;
+        get_Base2Cam_Controller = new getBase2CamController(&isOpenBase2CamController);
+        get_Base2Cam_Controller->show();
+    }
+    else {
+        QMessageBox::warning(NULL, QStringLiteral("DK相机控制台提示"), QStringLiteral("已打开Base2Cam控制台"), QMessageBox::Yes, QMessageBox::Yes);
+    }
+
+}
+
 
 std::vector<QVector3D> KinectController::ReadVec3PointCloudPCD(QString path) {
     std::vector<QVector3D> pointcloud;

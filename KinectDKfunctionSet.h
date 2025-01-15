@@ -35,3 +35,23 @@ QImage capture_to_qimage_depth(const k4a::capture& capture);
  */
 void saveColorImages(const std::vector<k4a::capture>& photos, const std::string& savePath);
 
+
+/**
+ * @brief 获取 base2cam 的六维表示（x, y, z, rx, ry, rz）。
+ *
+ * @return 返回一个 std::vector<double>，包含六维表示的值。
+ *         前三维是平移 (x, y, z)，后三维是旋转向量 (rx, ry, rz)。
+ */
+std::vector<double> getBase2Cam();
+
+
+/**
+ * @brief 使用输入的 4x4 变换矩阵更新 base2cam 的六维表示。
+ *
+ * @param transformMatrix 输入的 4x4 变换矩阵（cv::Mat 类型，大小为 4x4）。
+ *                        前三行前三列是旋转矩阵，前三行第四列是平移向量。
+ * @throws std::invalid_argument 如果输入矩阵不是 4x4 大小，会抛出异常。
+ */
+void updateBase2Cam(const cv::Mat& transformMatrix);
+
+

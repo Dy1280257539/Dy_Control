@@ -21,6 +21,8 @@
 #include "KinectDKfunctionSet.h"
 #include"pcfunctionSet.h"
 
+#include "getBase2CamController.h"
+
 #include<vector>
 
 using namespace ur_rtde;
@@ -48,11 +50,12 @@ private slots:
 	void on_readPCD_clicked();//读取PCD文件，并显示
 	void on_show_cur_pointcloud_clicked();//展示当前相机点云（待调整）
 	void on_save_cur_pointcloud_clicked();//保存当前保存的点云
-
+	
 	//手眼标定
 	void on_get_frame_and_pose_Button_clicked();//获取一组数据
 	void on_save_all_data_Button_clicked(); //保存当前数据
 	void on_clear_all_data_Button_clicked();//清空当前所有数据
+	void on_getBase2Cam_Button_clicked(); //输入Base2Cam 转换矩阵
 
 	//点云显示相关
 	std::vector<QVector3D> ReadVec3PointCloudPCD(QString path);
@@ -68,6 +71,7 @@ private://与手眼标定相关
 	int cur_data_num = 0; //当前手眼标定对应的数据 一组数据含一张图片和一个机器人姿态(base 2 gripper)
 	std::vector<std::vector<double>> poses; //机器人gripper的姿态
 	std::vector<k4a::capture> photos; // 相机拍摄的每一帧数据
+	bool isOpenBase2CamController = false; //是否已经打开了控制台
 
 
 private://线程
@@ -79,4 +83,5 @@ private:
 	bool* openFlagAddress;//主ui传入的open_KinectController_Flag的地址，析构时置为false用于告诉主线程已关闭
 	bool* r_connectFlagAddress; //主ui传入的r_connectFlag的地址，用于判断机器人是否连接且是否可读
 	RTDEReceiveInterface** rtde_r_Address; //主ui传入的读取机器人信息的指针的地址
+	getBase2CamController* get_Base2Cam_Controller;
 };
